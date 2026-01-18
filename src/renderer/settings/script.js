@@ -8,6 +8,10 @@ const remind5 = document.getElementById('remind-5');
 const remind1 = document.getElementById('remind-1');
 const soundEnabled = document.getElementById('sound-enabled');
 const syncInterval = document.getElementById('sync-interval');
+const oauthClientId = document.getElementById('google-client-id');
+const oauthClientSecret = document.getElementById('google-client-secret');
+const oauthSaveBtn = document.getElementById('oauth-save-btn');
+const oauthStatus = document.getElementById('oauth-status');
 
 // Current settings
 let settings = {};
@@ -25,6 +29,8 @@ async function loadSettings() {
   if (syncInterval) {
     syncInterval.value = String(settings.syncInterval || 5);
   }
+
+  await loadOAuthConfig();
   
   // Load upcoming events
   await loadUpcomingEvents();
@@ -114,6 +120,46 @@ async function loadUpcomingEvents() {
       </div>
     `;
   }).join('');
+}
+
+/**
+ * Load OAuth client credentials
+ */
+async function loadOAuthConfig() {
+  if (!oauthClientId || !oauthClientSecret) return;
+  const config = await window.electronAPI.getOAuthConfig();
+  oauthClientId.value = config.clientId || '';
+  oauthClientSecret.value = config.clientSecret || '';
+  if (config.clientId || config.clientSecret) {
+    setOAuthStatus('Saved');
+  }
+}
+
+/**
+ * Save OAuth client credentials
+ */
+async function saveOAuthConfig() {
+  if (!oauthClientId || !oauthClientSecret || !oauthSaveBtn) return;
+  oauthSaveBtn.disabled = true;
+  oauthSaveBtn.textContent = 'Saving...';
+  setOAuthStatus('');
+  const result = await window.electronAPI.saveOAuthConfig({
+    clientId: oauthClientId.value.trim(),
+    clientSecret: oauthClientSecret.value.trim()
+  });
+  if (result.success) {
+    setOAuthStatus('Saved');
+  } else {
+    setOAuthStatus(result.error || 'Save failed');
+  }
+  oauthSaveBtn.textContent = 'Save Credentials';
+  oauthSaveBtn.disabled = false;
+}
+
+function setOAuthStatus(message) {
+  if (oauthStatus) {
+    oauthStatus.textContent = message;
+  }
 }
 
 /**
@@ -207,6 +253,10 @@ document.querySelectorAll('.external-link').forEach(link => {
     }
   });
 });
+
+if (oauthSaveBtn) {
+  oauthSaveBtn.addEventListener('click', saveOAuthConfig);
+}
 
 // Initialize
 loadSettings();

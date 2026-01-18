@@ -183,9 +183,36 @@ select {
   min-width: 150px;
 }
 
+input[type="text"],
+input[type="password"] {
+  padding: 10px 12px;
+  font-size: 14px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  background: white;
+  width: 100%;
+}
+
 select:focus {
   outline: none;
   border-color: #4a90d9;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: #4a90d9;
+}
+
+.setting-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inline-status {
+  font-size: 13px;
+  color: #666;
 }
 
 /* Events list */
