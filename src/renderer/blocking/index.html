@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+  <title>Meeting Reminder</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="pulse-ring"></div>
+    <div class="pulse-ring delay-1"></div>
+    <div class="pulse-ring delay-2"></div>
+    
+    <div class="content">
+      <div class="icon">🔔</div>
+      
+      <div class="reminder-badge" id="reminder-badge">
+        <span id="reminder-prefix">Starting in</span>
+        <span id="minutes-left">5</span>
+        <span id="reminder-suffix">minutes</span>
+      </div>
+      
+      <h1 id="meeting-title">Meeting Title</h1>
+      
+      <div class="meeting-time" id="meeting-time">
+        <span class="time-icon">🕐</span>
+        <span id="time-text">10:00 AM - 11:00 AM</span>
+      </div>
+      
+      <div class="meeting-location" id="meeting-location" style="display: none;">
+        <span class="location-icon">📍</span>
+        <span id="location-text"></span>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-primary" id="join-btn" style="display: none;">
+          <span class="btn-icon" id="join-icon">📹</span>
+          <span>Join Meeting</span>
+        </button>
+        
+        <button class="btn btn-secondary" id="acknowledge-btn">
+          <span class="btn-icon">✓</span>
+          <span>I'm on it!</span>
+        </button>
+        
+        <button class="btn btn-snooze" id="snooze-btn">
+          <span class="btn-icon">⏰</span>
+          <span>Snooze 5 min</span>
+        </button>
+      </div>
+      
+      <div class="countdown" id="countdown">
+        Meeting starts in: <span id="countdown-timer">00:00</span>
+      </div>
+    </div>
+  </div>
+  
+  <audio id="alert-sound" loop>
+    <source src="../assets/sounds/alert.mp3" type="audio/mpeg">
+  </audio>
+  
+  <script src="script.js"></script>
+</body>
+</html>

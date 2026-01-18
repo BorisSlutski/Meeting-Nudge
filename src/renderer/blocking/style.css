@@ -1,0 +1,213 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  overflow: hidden;
+  user-select: none;
+}
+
+.container {
+  position: relative;
+  text-align: center;
+  padding: 40px;
+  max-width: 800px;
+  width: 100%;
+}
+
+/* Pulsing rings animation */
+.pulse-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 300px;
+  height: 300px;
+  border: 3px solid rgba(233, 69, 96, 0.4);
+  border-radius: 50%;
+  animation: pulse 2s ease-out infinite;
+}
+
+.pulse-ring.delay-1 {
+  animation-delay: 0.5s;
+}
+
+.pulse-ring.delay-2 {
+  animation-delay: 1s;
+}
+
+@keyframes pulse {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+.content {
+  position: relative;
+  z-index: 10;
+}
+
+.icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+  animation: shake 0.5s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: rotate(-5deg); }
+  50% { transform: rotate(5deg); }
+}
+
+.reminder-badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+  color: white;
+  padding: 10px 30px;
+  border-radius: 50px;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+  animation: glow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes glow {
+  from {
+    box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+  }
+  to {
+    box-shadow: 0 0 40px rgba(233, 69, 96, 0.8), 0 0 60px rgba(233, 69, 96, 0.4);
+  }
+}
+
+h1 {
+  font-size: 48px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+}
+
+.meeting-time, .meeting-location {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.time-icon, .location-icon {
+  font-size: 28px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 40px;
+  font-size: 20px;
+  font-weight: 600;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: none;
+}
+
+.btn-icon {
+  font-size: 24px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: white;
+  box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(76, 175, 80, 0.6);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+  color: white;
+  box-shadow: 0 8px 30px rgba(33, 150, 243, 0.4);
+}
+
+.btn-secondary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(33, 150, 243, 0.6);
+}
+
+.btn-snooze {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-snooze:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-3px);
+}
+
+.countdown {
+  margin-top: 50px;
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+#countdown-timer {
+  font-family: 'Courier New', monospace;
+  font-size: 28px;
+  font-weight: bold;
+  color: #e94560;
+}
+
+/* Urgency states */
+.urgent .reminder-badge {
+  animation: urgent-glow 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes urgent-glow {
+  from {
+    box-shadow: 0 0 30px rgba(233, 69, 96, 0.8);
+    transform: scale(1);
+  }
+  to {
+    box-shadow: 0 0 60px rgba(233, 69, 96, 1), 0 0 100px rgba(233, 69, 96, 0.6);
+    transform: scale(1.05);
+  }
+}
+
+.urgent .icon {
+  animation: shake 0.2s ease-in-out infinite;
+}
+
+/* Focus trap - prevent tabbing out */
+.container:focus {
+  outline: none;
+}
