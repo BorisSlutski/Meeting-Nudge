@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Calendar connections
   connectGoogle: () => ipcRenderer.invoke('connect-google'),
   disconnectGoogle: () => ipcRenderer.invoke('disconnect-google'),
+  getOAuthConfig: () => ipcRenderer.invoke('get-oauth-config'),
+  saveOAuthConfig: (config) => ipcRenderer.invoke('save-oauth-config', config),
   // Events
   getUpcomingEvents: () => ipcRenderer.invoke('get-upcoming-events'),
   syncCalendars: () => ipcRenderer.invoke('sync-calendars'),

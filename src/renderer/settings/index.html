@@ -84,6 +84,26 @@
         </div>
       </section>
 
+      <!-- Google OAuth Credentials -->
+      <section class="card">
+        <h2>Google OAuth Credentials</h2>
+        <p class="setting-note">
+          Set these once to enable Google Calendar. Stored securely in your OS keychain.
+        </p>
+        <div class="setting-item">
+          <label for="google-client-id">Client ID</label>
+          <input type="text" id="google-client-id" placeholder="YOUR_CLIENT_ID">
+        </div>
+        <div class="setting-item">
+          <label for="google-client-secret">Client Secret</label>
+          <input type="password" id="google-client-secret" placeholder="YOUR_CLIENT_SECRET">
+        </div>
+        <div class="setting-actions">
+          <button class="btn" id="oauth-save-btn">Save Credentials</button>
+          <span class="inline-status" id="oauth-status" aria-live="polite"></span>
+        </div>
+      </section>
+
       <!-- OAuth Setup Instructions -->
       <section class="card collapsible collapsed" id="setup-section">
         <h2 id="setup-header" style="cursor: pointer;">

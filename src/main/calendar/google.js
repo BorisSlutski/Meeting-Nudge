@@ -7,6 +7,8 @@ const { parseConferenceLink } = require('./parser');
 // Users need to create their own Google Cloud project and get these credentials
 const SCOPES = ['https://www.googleapis.com/auth/calendar.readonly'];
 const TOKEN_KEY = 'google-refresh-token';
+const CLIENT_ID_KEY = 'google-client-id';
+const CLIENT_SECRET_KEY = 'google-client-secret';
 
 /**
  * Google Calendar integration
@@ -25,9 +27,10 @@ class GoogleCalendar {
   /**
    * Initialize OAuth client
    */
-  initializeClient() {
+  async initializeClient() {
+    await this.loadCredentials();
     if (!this.clientId || !this.clientSecret) {
-      throw new Error('Google OAuth credentials not configured. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.');
+      throw new Error('Google OAuth credentials not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Settings or environment.');
     }
 
     this.oauth2Client = new google.auth.OAuth2(
@@ -44,7 +47,7 @@ class GoogleCalendar {
    * @returns {Promise<void>}
    */
   async authenticate() {
-    this.initializeClient();
+    await this.initializeClient();
 
     // Check for existing refresh token
     const existingToken = await SecureStore.getToken(TOKEN_KEY);
@@ -170,7 +173,7 @@ class GoogleCalendar {
       const token = await SecureStore.getToken(TOKEN_KEY);
       if (token) {
         try {
-          this.initializeClient();
+          await this.initializeClient();
           this.oauth2Client.setCredentials({ refresh_token: token });
         } catch (error) {
           // Credentials not configured - return empty array silently
@@ -228,6 +231,22 @@ class GoogleCalendar {
       }
       
       return [];
+    }
+  }
+
+  async loadCredentials() {
+    if (this.clientId && this.clientSecret) {
+      return;
+    }
+    const [clientId, clientSecret] = await Promise.all([
+      SecureStore.getToken(CLIENT_ID_KEY),
+      SecureStore.getToken(CLIENT_SECRET_KEY)
+    ]);
+    if (!this.clientId) {
+      this.clientId = clientId || '';
+    }
+    if (!this.clientSecret) {
+      this.clientSecret = clientSecret || '';
     }
   }
 }

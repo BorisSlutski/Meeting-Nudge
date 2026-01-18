@@ -4,7 +4,7 @@ const Store = require('electron-store');
 const { TrayManager } = require('./tray');
 const { Scheduler } = require('./scheduler');
 const { GoogleCalendar } = require('./calendar/google');
-const { parseConferenceLink } = require('./calendar/parser');
+const { SecureStore } = require('./store');
 
 // Initialize store for settings
 const store = new Store({
@@ -281,6 +281,38 @@ ipcMain.handle('disconnect-google', async () => {
   store.set('googleConnected', false);
   await syncCalendars();
   return { success: true };
+});
+
+ipcMain.handle('get-oauth-config', async () => {
+  const clientId = await SecureStore.getToken('google-client-id');
+  const clientSecret = await SecureStore.getToken('google-client-secret');
+  return {
+    clientId: clientId || '',
+    clientSecret: clientSecret || ''
+  };
+});
+
+ipcMain.handle('save-oauth-config', async (event, config) => {
+  try {
+    const clientId = typeof config?.clientId === 'string' ? config.clientId.trim() : '';
+    const clientSecret = typeof config?.clientSecret === 'string' ? config.clientSecret.trim() : '';
+
+    if (clientId) {
+      await SecureStore.setToken('google-client-id', clientId);
+    } else {
+      await SecureStore.deleteToken('google-client-id');
+    }
+
+    if (clientSecret) {
+      await SecureStore.setToken('google-client-secret', clientSecret);
+    } else {
+      await SecureStore.deleteToken('google-client-secret');
+    }
+
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('sync-calendars', async () => {
