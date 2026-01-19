@@ -26,6 +26,7 @@ let trayManager = null;
 let scheduler = null;
 let googleCalendar = null;
 let syncTimer = null;
+let isQuitting = false;
 
 // All calendar events
 let allEvents = [];
@@ -40,6 +41,78 @@ function buildReminderPayload(event) {
     ...event,
     soundEnabled: store.get('soundEnabled') !== false
   };
+}
+
+const MEETING_HOST_ALLOWLIST = [
+  'zoom.us',
+  'meet.google.com',
+  'teams.microsoft.com',
+  'webex.com',
+  'gotomeeting.com',
+  'gotomeet.com',
+  'bluejeans.com',
+  'slack.com',
+  'discord.gg',
+  'discord.com',
+  'whereby.com',
+  'around.co',
+  'meet.jit.si',
+  'chime.aws',
+  'ringcentral.com'
+];
+
+const EXTERNAL_HOST_ALLOWLIST = [
+  'console.cloud.google.com',
+  'cloud.google.com',
+  'developers.google.com',
+  'accounts.google.com'
+];
+
+function isAllowedHost(hostname, allowlist) {
+  const host = String(hostname || '').toLowerCase();
+  return allowlist.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+}
+
+function isSafeExternalUrl(url, allowlist) {
+  if (typeof url !== 'string') return false;
+  try {
+    const parsed = new URL(url);
+    if (!['https:'].includes(parsed.protocol)) {
+      return false;
+    }
+    if (Array.isArray(allowlist) && allowlist.length > 0) {
+      return isAllowedHost(parsed.hostname, allowlist);
+    }
+    return true;
+  } catch (error) {
+    return false;
+  }
+}
+
+function sanitizeSettings(settings) {
+  const sanitized = {};
+
+  if (Array.isArray(settings?.reminderTimes)) {
+    const times = settings.reminderTimes
+      .map((value) => Number.parseInt(value, 10))
+      .filter((value) => Number.isFinite(value) && value > 0 && value <= 120);
+    if (times.length > 0) {
+      sanitized.reminderTimes = [...new Set(times)].sort((a, b) => b - a);
+    }
+  }
+
+  if (settings?.syncInterval !== undefined) {
+    const interval = Number.parseInt(settings.syncInterval, 10);
+    if (Number.isFinite(interval) && interval > 0 && interval <= 60) {
+      sanitized.syncInterval = interval;
+    }
+  }
+
+  if (typeof settings?.soundEnabled === 'boolean') {
+    sanitized.soundEnabled = settings.soundEnabled;
+  }
+
+  return sanitized;
 }
 
 /**
@@ -105,6 +178,9 @@ function createBlockingWindow(event) {
   
   // Prevent Alt+F4 on Windows
   blockingWindow.on('close', (e) => {
+    if (isQuitting) {
+      return;
+    }
     e.preventDefault();
   });
 
@@ -227,6 +303,11 @@ app.whenReady().then(async () => {
   });
 });
 
+app.on('before-quit', () => {
+  isQuitting = true;
+  closeBlockingWindow();
+});
+
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
   // Don't quit - we run in the tray
@@ -248,13 +329,14 @@ ipcMain.handle('get-settings', () => {
 });
 
 ipcMain.handle('save-settings', (event, settings) => {
-  Object.entries(settings).forEach(([key, value]) => {
+  const sanitized = sanitizeSettings(settings);
+  Object.entries(sanitized).forEach(([key, value]) => {
     store.set(key, value);
   });
-  if (settings.syncInterval) {
+  if (sanitized.syncInterval) {
     scheduleSyncTimer();
   }
-  if (settings.reminderTimes && scheduler) {
+  if (sanitized.reminderTimes && scheduler) {
     scheduler.updateEvents(allEvents);
   }
   return true;
@@ -332,12 +414,18 @@ ipcMain.handle('snooze-meeting', (event, minutes = 5) => {
 });
 
 ipcMain.handle('join-meeting', (event, url) => {
+  if (!isSafeExternalUrl(url, MEETING_HOST_ALLOWLIST)) {
+    return { success: false, error: 'Invalid URL' };
+  }
   shell.openExternal(url);
   closeBlockingWindow();
   return { success: true };
 });
 
 ipcMain.handle('open-external', (event, url) => {
+  if (!isSafeExternalUrl(url, EXTERNAL_HOST_ALLOWLIST)) {
+    return { success: false, error: 'Invalid URL' };
+  }
   shell.openExternal(url);
   return { success: true };
 });

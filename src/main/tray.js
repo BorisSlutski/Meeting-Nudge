@@ -1,5 +1,28 @@
-const { Tray, Menu, nativeImage, app } = require('electron');
+const { Tray, Menu, nativeImage, app, shell } = require('electron');
 const path = require('path');
+
+const MEETING_HOST_ALLOWLIST = [
+  'zoom.us',
+  'meet.google.com',
+  'teams.microsoft.com',
+  'webex.com',
+  'gotomeeting.com',
+  'gotomeet.com',
+  'bluejeans.com',
+  'slack.com',
+  'discord.gg',
+  'discord.com',
+  'whereby.com',
+  'around.co',
+  'meet.jit.si',
+  'chime.aws',
+  'ringcentral.com'
+];
+
+function isAllowedHost(hostname, allowlist) {
+  const host = String(hostname || '').toLowerCase();
+  return allowlist.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
+}
 
 /**
  * System tray manager
@@ -21,7 +44,7 @@ class TrayManager {
    */
   createTray() {
     // Create a simple icon (you can replace with actual icon file)
-    const iconPath = path.join(__dirname, '..', '..', 'resources', 'tray-icon.png');
+    const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
     
     // Try to load icon, fall back to empty image
     let icon;
@@ -88,7 +111,9 @@ class TrayManager {
           sublabel: dateStr,
           click: () => {
             if (event.conferenceLink) {
-              require('electron').shell.openExternal(event.conferenceLink);
+              if (this.isSafeMeetingUrl(event.conferenceLink)) {
+                shell.openExternal(event.conferenceLink);
+              }
             }
           }
         });
@@ -132,6 +157,16 @@ class TrayManager {
 
     const contextMenu = Menu.buildFromTemplate(menuItems);
     this.tray.setContextMenu(contextMenu);
+  }
+
+  isSafeMeetingUrl(url) {
+    if (typeof url !== 'string') return false;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'https:' && isAllowedHost(parsed.hostname, MEETING_HOST_ALLOWLIST);
+    } catch (error) {
+      return false;
+    }
   }
 
   /**

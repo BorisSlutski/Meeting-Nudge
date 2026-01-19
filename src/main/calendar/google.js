@@ -1,5 +1,6 @@
 const { google } = require('googleapis');
 const { BrowserWindow } = require('electron');
+const crypto = require('crypto');
 const { SecureStore } = require('../store');
 const { parseConferenceLink } = require('./parser');
 
@@ -22,6 +23,15 @@ class GoogleCalendar {
     // These should be set by the user in settings or environment
     this.clientId = process.env.GOOGLE_CLIENT_ID || '';
     this.clientSecret = process.env.GOOGLE_CLIENT_SECRET || '';
+  }
+
+  generatePkcePair() {
+    const codeVerifier = crypto.randomBytes(32).toString('base64url');
+    const codeChallenge = crypto
+      .createHash('sha256')
+      .update(codeVerifier)
+      .digest('base64url');
+    return { codeVerifier, codeChallenge };
   }
 
   /**
@@ -66,10 +76,26 @@ class GoogleCalendar {
 
     // Start OAuth flow
     return new Promise((resolve, reject) => {
+      let settled = false;
+      const finish = (error) => {
+        if (settled) return;
+        settled = true;
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      };
+
+      const state = crypto.randomBytes(16).toString('hex');
+      const { codeVerifier, codeChallenge } = this.generatePkcePair();
       const authUrl = this.oauth2Client.generateAuthUrl({
         access_type: 'offline',
         scope: SCOPES,
-        prompt: 'consent'
+        prompt: 'consent',
+        state,
+        code_challenge: codeChallenge,
+        code_challenge_method: 'S256'
       });
 
       // Create auth window
@@ -93,7 +119,17 @@ class GoogleCalendar {
           
           if (parsedUrl.pathname === '/oauth/google/callback') {
             const code = parsedUrl.query.code;
+            const returnedState = parsedUrl.query.state;
             
+            if (returnedState !== state) {
+              res.writeHead(400);
+              res.end('Invalid OAuth state');
+              server.close();
+              authWindow.close();
+              finish(new Error('Invalid OAuth state'));
+              return;
+            }
+
             if (code) {
               res.writeHead(200, { 'Content-Type': 'text/html' });
               res.end(`
@@ -107,7 +143,10 @@ class GoogleCalendar {
               `);
 
               // Exchange code for tokens
-              const { tokens } = await this.oauth2Client.getToken(code);
+              const { tokens } = await this.oauth2Client.getToken({
+                code,
+                codeVerifier
+              });
               this.oauth2Client.setCredentials(tokens);
 
               // Store refresh token securely
@@ -117,23 +156,28 @@ class GoogleCalendar {
 
               server.close();
               authWindow.close();
-              resolve();
+              finish();
             } else {
               res.writeHead(400);
               res.end('No authorization code received');
               server.close();
               authWindow.close();
-              reject(new Error('No authorization code received'));
+              finish(new Error('No authorization code received'));
             }
           }
         } catch (error) {
           server.close();
           authWindow.close();
-          reject(error);
+          finish(error);
         }
       });
 
-      server.listen(8089, () => {
+      server.on('error', (error) => {
+        authWindow.close();
+        finish(error);
+      });
+
+      server.listen(8089, '127.0.0.1', () => {
         console.log('Google OAuth callback server listening on port 8089');
         authWindow.loadURL(authUrl);
       });
@@ -141,6 +185,7 @@ class GoogleCalendar {
       // Handle window close
       authWindow.on('closed', () => {
         server.close();
+        finish(new Error('OAuth window closed'));
       });
     });
   }

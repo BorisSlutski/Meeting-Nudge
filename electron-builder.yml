@@ -15,7 +15,7 @@ asar: true
 
 mac:
   category: public.app-category.productivity
-  icon: resources/icon.icns
+  icon: resources/icon.png
   hardenedRuntime: true
   gatekeeperAssess: false
   target:

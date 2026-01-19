@@ -131,6 +131,10 @@ header h1 {
   color: #333;
 }
 
+.sync-button {
+  margin-top: 15px;
+}
+
 .btn-secondary:hover {
   background: #e0e0e0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -287,6 +291,10 @@ input[type="password"]:focus {
 .collapsible h2 {
   cursor: pointer;
   user-select: none;
+}
+
+.collapsible-header {
+  cursor: pointer;
 }
 
 .toggle-icon {

@@ -96,30 +96,86 @@ async function loadUpcomingEvents() {
   const events = await window.electronAPI.getUpcomingEvents();
   
   if (events.length === 0) {
-    upcomingEvents.innerHTML = '<p class="empty-state">No upcoming meetings</p>';
+    upcomingEvents.textContent = '';
+    const emptyState = document.createElement('p');
+    emptyState.className = 'empty-state';
+    emptyState.textContent = 'No upcoming meetings';
+    upcomingEvents.appendChild(emptyState);
     return;
   }
-  
-  upcomingEvents.innerHTML = events.map(event => {
-    const startDate = new Date(event.start);
-    const time = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const date = formatDate(startDate);
-    
-    return `
-      <div class="event-item">
-        <div class="event-time">
-          <div class="time">${time}</div>
-          <div class="date">${date}</div>
-        </div>
-        <div class="event-details">
-          <div class="event-title">${escapeHtml(event.title)}</div>
-          ${event.location ? `<div class="event-location">${escapeHtml(event.location)}</div>` : ''}
-          ${event.conferenceLink ? `<div class="event-location">${event.conferenceIcon || 'Video'} ${event.conferenceName || 'Video Call'}</div>` : ''}
-        </div>
-        <span class="event-source ${event.source}">${event.source}</span>
-      </div>
-    `;
-  }).join('');
+
+  upcomingEvents.textContent = '';
+  events.forEach((event) => {
+    upcomingEvents.appendChild(createEventItem(event));
+  });
+}
+
+function createEventItem(event) {
+  const startDate = new Date(event.start);
+  const time = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const date = formatDate(startDate);
+  const sourceClass = normalizeCssToken(event.source);
+
+  const item = document.createElement('div');
+  item.className = 'event-item';
+
+  const timeContainer = document.createElement('div');
+  timeContainer.className = 'event-time';
+
+  const timeEl = document.createElement('div');
+  timeEl.className = 'time';
+  timeEl.textContent = time;
+
+  const dateEl = document.createElement('div');
+  dateEl.className = 'date';
+  dateEl.textContent = date;
+
+  timeContainer.appendChild(timeEl);
+  timeContainer.appendChild(dateEl);
+
+  const details = document.createElement('div');
+  details.className = 'event-details';
+
+  const title = document.createElement('div');
+  title.className = 'event-title';
+  title.textContent = event.title || 'Untitled Event';
+  details.appendChild(title);
+
+  if (event.location) {
+    const location = document.createElement('div');
+    location.className = 'event-location';
+    location.textContent = event.location;
+    details.appendChild(location);
+  }
+
+  if (event.conferenceLink) {
+    const conference = document.createElement('div');
+    conference.className = 'event-location';
+    const icon = event.conferenceIcon || 'Video';
+    const name = event.conferenceName || 'Video Call';
+    conference.textContent = `${icon} ${name}`;
+    details.appendChild(conference);
+  }
+
+  const source = document.createElement('span');
+  source.className = `event-source ${sourceClass}`;
+  source.textContent = event.source || 'unknown';
+
+  item.appendChild(timeContainer);
+  item.appendChild(details);
+  item.appendChild(source);
+
+  return item;
+}
+
+function normalizeCssToken(value) {
+  if (!value) return 'unknown';
+  return String(value)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'unknown';
 }
 
 /**
@@ -177,15 +233,6 @@ function formatDate(date) {
   } else {
     return date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
   }
-}
-
-/**
- * Escape HTML to prevent XSS
- */
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 // Event Listeners

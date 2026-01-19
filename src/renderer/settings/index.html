@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';">
   <title>Meeting Nudge - Settings</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -30,7 +30,7 @@
           <button class="btn" id="google-btn">Connect</button>
         </div>
         
-        <button class="btn btn-secondary" id="sync-btn" style="margin-top: 15px;">
+        <button class="btn btn-secondary sync-button" id="sync-btn">
           Sync Now
         </button>
       </section>
@@ -106,7 +106,7 @@
 
       <!-- OAuth Setup Instructions -->
       <section class="card collapsible collapsed" id="setup-section">
-        <h2 id="setup-header" style="cursor: pointer;">
+        <h2 id="setup-header" class="collapsible-header">
           Setup Instructions
           <span class="toggle-icon">▼</span>
         </h2>

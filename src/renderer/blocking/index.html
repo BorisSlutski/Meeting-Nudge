@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';">
   <title>Meeting Reminder</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -29,13 +29,13 @@
         <span id="time-text">10:00 AM - 11:00 AM</span>
       </div>
       
-      <div class="meeting-location" id="meeting-location" style="display: none;">
+      <div class="meeting-location" id="meeting-location">
         <span class="location-icon">📍</span>
         <span id="location-text"></span>
       </div>
       
       <div class="actions">
-        <button class="btn btn-primary" id="join-btn" style="display: none;">
+        <button class="btn btn-primary" id="join-btn">
           <span class="btn-icon" id="join-icon">📹</span>
           <span>Join Meeting</span>
         </button>

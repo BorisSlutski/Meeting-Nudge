@@ -111,6 +111,10 @@ h1 {
   gap: 10px;
 }
 
+.meeting-location {
+  display: none;
+}
+
 .time-icon, .location-icon {
   font-size: 28px;
 }
@@ -145,6 +149,10 @@ h1 {
   background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
   color: white;
   box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
+}
+
+#join-btn {
+  display: none;
 }
 
 .btn-primary:hover {
