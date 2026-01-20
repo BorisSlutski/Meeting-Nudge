@@ -43,24 +43,37 @@ class TrayManager {
    * Create the system tray icon
    */
   createTray() {
-    // Create a simple icon (you can replace with actual icon file)
-    const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+    // Use optimized tray icon based on platform
+    let iconPath;
+    if (process.platform === 'darwin') {
+      // macOS: 16x16 or 32x32 (supports retina)
+      iconPath = path.join(__dirname, '..', '..', 'resources', 'tray-icon-16.png');
+    } else if (process.platform === 'win32') {
+      // Windows: 16x16 or 32x32
+      iconPath = path.join(__dirname, '..', '..', 'resources', 'tray-icon-32.png');
+    } else {
+      // Linux: typically 16x16 or 22x22
+      iconPath = path.join(__dirname, '..', '..', 'resources', 'tray-icon-16.png');
+    }
     
-    // Try to load icon, fall back to empty image
+    // Try to load icon, fall back to default
     let icon;
     try {
       icon = nativeImage.createFromPath(iconPath);
       if (icon.isEmpty()) {
-        // Create a simple colored icon as fallback
-        icon = this.createDefaultIcon();
+        // Fallback to main tray icon
+        icon = nativeImage.createFromPath(path.join(__dirname, '..', '..', 'resources', 'tray-icon.png'));
+        // Resize if needed
+        if (process.platform === 'darwin') {
+          icon = icon.resize({ width: 16, height: 16 });
+        } else if (process.platform === 'win32') {
+          icon = icon.resize({ width: 32, height: 32 });
+        } else {
+          icon = icon.resize({ width: 16, height: 16 });
+        }
       }
     } catch (e) {
       icon = this.createDefaultIcon();
-    }
-
-    // Resize for tray (16x16 on most systems)
-    if (process.platform === 'darwin') {
-      icon = icon.resize({ width: 16, height: 16 });
     }
 
     this.tray = new Tray(icon);

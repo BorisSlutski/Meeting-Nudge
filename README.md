@@ -201,10 +201,32 @@ The app automatically detects meeting links for:
 - Amazon Chime
 - RingCentral
 
+## Icons
+
+The app uses different icons for different purposes:
+
+- **App Icon** (`icon.png`) - Main application icon for windows and builds
+- **Tray Icons** - Optimized icons for system tray on different platforms:
+  - `tray-icon-16.png` - macOS and Linux (16×16)
+  - `tray-icon-32.png` - Windows (32×32)
+  - `tray-icon.png` - High-res source (1024×1024)
+
+### Customizing Icons
+
+To change the app icon, replace `resources/icon.png` with your custom icon (recommended: 1024×1024 pixels).
+
+For tray icons, you can regenerate optimized sizes using:
+
+```bash
+# Create optimized tray icons
+sips -z 16 16 resources/tray-icon.png --out resources/tray-icon-16.png
+sips -z 32 32 resources/tray-icon.png --out resources/tray-icon-32.png
+```
+
 ## Project Structure
 
 ```
-adhd-meeting-reminder/
+meeting-nudge/
 ├── src/
 │   ├── main/                    # Main process (Node.js)
 │   │   ├── index.js             # Entry point
@@ -219,6 +241,12 @@ adhd-meeting-reminder/
 │   │   └── settings/            # Settings window
 │   │   └── preload.js           # Secure IPC bridge
 ├── resources/                   # App icons
+│   ├── icon.png                 # Main app icon (1024×1024)
+│   ├── icon-512.png             # App icon (512×512)
+│   ├── icon-256.png             # App icon (256×256)
+│   ├── tray-icon.png            # Tray icon source (1024×1024)
+│   ├── tray-icon-32.png         # Windows tray icon (32×32)
+│   └── tray-icon-16.png         # macOS/Linux tray icon (16×16)
 └── package.json
 ```
 
