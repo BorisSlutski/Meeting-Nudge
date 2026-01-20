@@ -124,11 +124,14 @@ function createSettingsWindow() {
     return;
   }
 
+  const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+
   settingsWindow = new BrowserWindow({
     width: 600,
     height: 700,
     resizable: false,
     title: 'Meeting Nudge - Settings',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
@@ -153,6 +156,8 @@ function createBlockingWindow(event) {
     return;
   }
 
+  const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+
   blockingWindow = new BrowserWindow({
     fullscreen: true,
     alwaysOnTop: true,
@@ -163,6 +168,7 @@ function createBlockingWindow(event) {
     frame: false,
     transparent: false,
     backgroundColor: '#1a1a2e',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
@@ -293,6 +299,15 @@ async function initialize() {
 
 // App ready
 app.whenReady().then(async () => {
+  // Set app icon for dock/taskbar (works in development mode too)
+  const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+  const appIcon = nativeImage.createFromPath(iconPath);
+  
+  // Set dock icon on macOS
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(appIcon);
+  }
+  
   await initialize();
 
   // macOS: re-create window when dock icon clicked

@@ -1,0 +1,57 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rounded rectangle background (white) with rounded corners -->
+  <rect width="1024" height="1024" rx="226" ry="226" fill="#FFFFFF"/>
+  
+  <!-- Shadow/border effect for depth -->
+  <rect width="1024" height="1024" rx="226" ry="226" fill="none" stroke="#E5E5E5" stroke-width="2"/>
+  
+  <!-- Your original icon content centered with padding -->
+  <g transform="translate(112, 112)">
+    <!-- This creates a 800x800 area in the center (leaving 112px padding on each side) -->
+    <!-- The content will have rounded corners effect -->
+    
+    <!-- Add your meeting reminder icon here -->
+    <!-- Bell icon representing meeting reminder -->
+    <g transform="translate(400, 200)">
+      <!-- Bell body -->
+      <path d="M 0,-80 Q -60,-80 -80,-40 L -80,40 Q -80,80 -40,100 L 40,100 Q 80,80 80,40 L 80,-40 Q 60,-80 0,-80 Z" 
+            fill="#4A90E2" stroke="#2E5C8A" stroke-width="4"/>
+      
+      <!-- Bell top -->
+      <circle cx="0" cy="-90" r="15" fill="#2E5C8A"/>
+      
+      <!-- Bell clapper -->
+      <ellipse cx="0" cy="110" rx="20" ry="25" fill="#FFD700"/>
+      
+      <!-- Sound waves -->
+      <path d="M -100,-40 Q -120,-20 -100,0" fill="none" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+      <path d="M -130,-50 Q -160,-20 -130,10" fill="none" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+      
+      <path d="M 100,-40 Q 120,-20 100,0" fill="none" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.6"/>
+      <path d="M 130,-50 Q 160,-20 130,10" fill="none" stroke="#4A90E2" stroke-width="6" stroke-linecap="round" opacity="0.4"/>
+    </g>
+    
+    <!-- Clock/time element below bell -->
+    <g transform="translate(400, 500)">
+      <!-- Clock circle -->
+      <circle cx="0" cy="0" r="120" fill="#FFFFFF" stroke="#4A90E2" stroke-width="8"/>
+      
+      <!-- Clock face markings -->
+      <circle cx="0" cy="-90" r="8" fill="#4A90E2"/>
+      <circle cx="90" cy="0" r="8" fill="#4A90E2"/>
+      <circle cx="0" cy="90" r="8" fill="#4A90E2"/>
+      <circle cx="-90" cy="0" r="8" fill="#4A90E2"/>
+      
+      <!-- Clock hands (showing almost time - 11:55) -->
+      <line x1="0" y1="0" x2="0" y2="-60" stroke="#2E5C8A" stroke-width="8" stroke-linecap="round"/>
+      <line x1="0" y1="0" x2="50" y2="-20" stroke="#FF6B6B" stroke-width="6" stroke-linecap="round"/>
+      
+      <!-- Center dot -->
+      <circle cx="0" cy="0" r="12" fill="#2E5C8A"/>
+    </g>
+    
+    <!-- Text "Meeting" styled -->
+    <text x="400" y="680" font-family="system-ui, -apple-system, sans-serif" font-size="80" font-weight="600" text-anchor="middle" fill="#2E5C8A">Meeting</text>
+    <text x="400" y="750" font-family="system-ui, -apple-system, sans-serif" font-size="60" font-weight="500" text-anchor="middle" fill="#4A90E2">Nudge</text>
+  </g>
+</svg>
