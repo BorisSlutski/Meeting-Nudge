@@ -310,11 +310,11 @@ app.whenReady().then(async () => {
   
   await initialize();
 
-  // macOS: re-create window when dock icon clicked
+  // macOS: open settings only when dock icon is explicitly clicked
+  // Don't auto-open when windows are closed
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createSettingsWindow();
-    }
+    // Only open settings if user clicks dock and settings was already open before
+    // Don't auto-open after blocking window closes
   });
 });
 
