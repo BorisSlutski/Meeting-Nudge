@@ -1,0 +1,76 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clever Owl Icon for Meeting Nudge -->
+  
+  <!-- Body -->
+  <ellipse cx="256" cy="280" rx="140" ry="160" fill="#8B6F47"/>
+  
+  <!-- Head -->
+  <circle cx="256" cy="180" r="120" fill="#A0826D"/>
+  
+  <!-- Ear tufts -->
+  <ellipse cx="190" cy="90" rx="25" ry="50" fill="#8B6F47" transform="rotate(-20 190 90)"/>
+  <ellipse cx="322" cy="90" rx="25" ry="50" fill="#8B6F47" transform="rotate(20 322 90)"/>
+  
+  <!-- Eye whites -->
+  <circle cx="220" cy="170" r="40" fill="#FFFFFF"/>
+  <circle cx="292" cy="170" r="40" fill="#FFFFFF"/>
+  
+  <!-- Pupils (looking slightly up and to the side - thoughtful look) -->
+  <circle cx="225" cy="165" r="18" fill="#2C1810"/>
+  <circle cx="297" cy="165" r="18" fill="#2C1810"/>
+  
+  <!-- Eye highlights (makes eyes look alive) -->
+  <circle cx="230" cy="160" r="6" fill="#FFFFFF"/>
+  <circle cx="302" cy="160" r="6" fill="#FFFFFF"/>
+  
+  <!-- Glasses (clever/smart look) -->
+  <g stroke="#333333" stroke-width="4" fill="none">
+    <!-- Left lens -->
+    <circle cx="220" cy="170" r="42"/>
+    <!-- Right lens -->
+    <circle cx="292" cy="170" r="42"/>
+    <!-- Bridge -->
+    <line x1="262" y1="170" x2="250" y2="170"/>
+    <!-- Left temple -->
+    <path d="M 178 170 Q 160 165, 150 160"/>
+    <!-- Right temple -->
+    <path d="M 334 170 Q 352 165, 362 160"/>
+  </g>
+  
+  <!-- Beak -->
+  <path d="M 256 195 L 246 220 L 266 220 Z" fill="#F4A460"/>
+  
+  <!-- Wings -->
+  <ellipse cx="160" cy="310" rx="35" ry="80" fill="#7D5E3F"/>
+  <ellipse cx="352" cy="310" rx="35" ry="80" fill="#7D5E3F"/>
+  
+  <!-- Feet -->
+  <g fill="#F4A460">
+    <ellipse cx="230" cy="430" rx="15" ry="8"/>
+    <ellipse cx="282" cy="430" rx="15" ry="8"/>
+  </g>
+  
+  <!-- Book (to emphasize cleverness - owl reading/studying) -->
+  <g>
+    <rect x="200" y="340" width="112" height="80" rx="4" fill="#8B4513"/>
+    <rect x="205" y="345" width="102" height="70" fill="#F5DEB3"/>
+    <!-- Book spine -->
+    <line x1="256" y1="345" x2="256" y2="415" stroke="#8B4513" stroke-width="2"/>
+    <!-- Book pages lines -->
+    <line x1="215" y1="360" x2="246" y2="360" stroke="#CCC" stroke-width="1"/>
+    <line x1="215" y1="370" x2="246" y2="370" stroke="#CCC" stroke-width="1"/>
+    <line x1="215" y1="380" x2="246" y2="380" stroke="#CCC" stroke-width="1"/>
+    <line x1="266" y1="360" x2="297" y2="360" stroke="#CCC" stroke-width="1"/>
+    <line x1="266" y1="370" x2="297" y2="370" stroke="#CCC" stroke-width="1"/>
+    <line x1="266" y1="380" x2="297" y2="380" stroke="#CCC" stroke-width="1"/>
+  </g>
+  
+  <!-- Clock/watch on wing (meeting reminder theme) -->
+  <g>
+    <circle cx="352" cy="280" r="20" fill="#333333" stroke="#666666" stroke-width="2"/>
+    <circle cx="352" cy="280" r="16" fill="#FFFFFF"/>
+    <!-- Clock hands pointing to almost time -->
+    <line x1="352" y1="280" x2="352" y2="270" stroke="#333333" stroke-width="2" stroke-linecap="round"/>
+    <line x1="352" y1="280" x2="358" y2="280" stroke="#333333" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+</svg>

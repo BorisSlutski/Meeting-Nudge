@@ -124,11 +124,14 @@ function createSettingsWindow() {
     return;
   }
 
+  const iconPath = path.join(__dirname, '..', '..', 'resources', 'owl-icon.png');
+
   settingsWindow = new BrowserWindow({
     width: 600,
     height: 700,
     resizable: false,
     title: 'Meeting Nudge - Settings',
+    icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,

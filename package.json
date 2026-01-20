@@ -35,13 +35,13 @@
     ],
     "mac": {
       "category": "public.app-category.productivity",
-      "icon": "resources/icon.png"
+      "icon": "resources/owl-icon.png"
     },
     "win": {
-      "icon": "resources/icon.ico"
+      "icon": "resources/owl-icon.png"
     },
     "linux": {
-      "icon": "resources/icon.png",
+      "icon": "resources/owl-icon.png",
       "category": "Utility"
     }
   }

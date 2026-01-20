@@ -1,8 +1,8 @@
 # Meeting Nudge
 
-![Meeting Nudge icon](resources/tray-icon.png)
+![Meeting Nudge - Clever Owl Icon](resources/owl-icon.svg)
 
-A cross-platform desktop app that blocks your entire screen before meetings, making it **impossible to miss them**. Built for anyone who experiences time blindness.
+A cross-platform desktop app that blocks your entire screen before meetings, making it **impossible to miss them**. Built for anyone who experiences time blindness. Your clever owl companion that never misses a meeting!
 
 ## Download
 
@@ -201,10 +201,21 @@ The app automatically detects meeting links for:
 - Amazon Chime
 - RingCentral
 
+## Icon
+
+The app features a clever owl icon! 🦉 The owl is reading a book and wearing glasses (smart!), plus has a clock on its wing (meeting reminder theme).
+
+To customize the icon, edit `resources/owl-icon.svg` and regenerate the PNG files:
+
+```bash
+# Requires rsvg-convert (install via: brew install librsvg)
+rsvg-convert -w 512 -h 512 resources/owl-icon.svg -o resources/owl-icon.png
+```
+
 ## Project Structure
 
 ```
-adhd-meeting-reminder/
+meeting-nudge/
 ├── src/
 │   ├── main/                    # Main process (Node.js)
 │   │   ├── index.js             # Entry point
@@ -218,7 +229,11 @@ adhd-meeting-reminder/
 │   │   ├── blocking/            # Full-screen blocking window
 │   │   └── settings/            # Settings window
 │   │   └── preload.js           # Secure IPC bridge
-├── resources/                   # App icons
+├── resources/                   # App icons (clever owl! 🦉)
+│   ├── owl-icon.svg             # Source vector icon
+│   ├── owl-icon.png             # App icon (generated from SVG)
+│   ├── tray-icon.png            # System tray icon
+│   └── icon.png                 # Legacy app icon
 └── package.json
 ```
 

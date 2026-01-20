@@ -43,10 +43,10 @@ class TrayManager {
    * Create the system tray icon
    */
   createTray() {
-    // Create a simple icon (you can replace with actual icon file)
-    const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+    // Load the tray icon
+    const iconPath = path.join(__dirname, '..', '..', 'resources', 'tray-icon.png');
     
-    // Try to load icon, fall back to empty image
+    // Try to load icon, fall back to default
     let icon;
     try {
       icon = nativeImage.createFromPath(iconPath);
@@ -58,9 +58,11 @@ class TrayManager {
       icon = this.createDefaultIcon();
     }
 
-    // Resize for tray (16x16 on most systems)
+    // Resize for tray (16x16 on macOS, 32x32 on Windows/Linux)
     if (process.platform === 'darwin') {
       icon = icon.resize({ width: 16, height: 16 });
+    } else {
+      icon = icon.resize({ width: 32, height: 32 });
     }
 
     this.tray = new Tray(icon);
