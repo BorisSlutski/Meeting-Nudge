@@ -299,6 +299,15 @@ async function initialize() {
 
 // App ready
 app.whenReady().then(async () => {
+  // Set app icon for dock/taskbar (works in development mode too)
+  const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
+  const appIcon = nativeImage.createFromPath(iconPath);
+  
+  // Set dock icon on macOS
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.setIcon(appIcon);
+  }
+  
   await initialize();
 
   // macOS: re-create window when dock icon clicked
