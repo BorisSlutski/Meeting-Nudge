@@ -120,6 +120,7 @@ function sanitizeSettings(settings) {
  */
 function createSettingsWindow() {
   if (settingsWindow) {
+    settingsWindow.show();
     settingsWindow.focus();
     return;
   }
@@ -132,6 +133,7 @@ function createSettingsWindow() {
     resizable: false,
     title: 'Meeting Nudge - Settings',
     icon: iconPath,
+    skipTaskbar: false, // Show in taskbar when settings is open
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
@@ -141,9 +143,27 @@ function createSettingsWindow() {
 
   settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings', 'index.html'));
 
+  // Hide window instead of closing it
+  settingsWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault();
+      settingsWindow.hide();
+      
+      // Hide from dock/taskbar on macOS when window is hidden
+      if (process.platform === 'darwin' && app.dock) {
+        app.dock.hide();
+      }
+    }
+  });
+
   settingsWindow.on('closed', () => {
     settingsWindow = null;
   });
+  
+  // Show in dock when settings window is shown
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.show();
+  }
 }
 
 /**
@@ -213,6 +233,11 @@ function closeBlockingWindow() {
     // and has a close event preventing normal closure
     blockingWindow.destroy();
     blockingWindow = null;
+  }
+  
+  // Hide from dock/taskbar after blocking window closes
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
   }
 }
 
@@ -299,19 +324,27 @@ async function initialize() {
 
 // App ready
 app.whenReady().then(async () => {
+  // Hide from dock/taskbar on startup (app runs in tray only)
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
+  
   await initialize();
 
-  // macOS: re-create window when dock icon clicked
+  // macOS: show settings when dock icon clicked (if visible)
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createSettingsWindow();
-    }
+    createSettingsWindow();
   });
 });
 
 app.on('before-quit', () => {
   isQuitting = true;
   closeBlockingWindow();
+  
+  // Clean up settings window
+  if (settingsWindow && !settingsWindow.isDestroyed()) {
+    settingsWindow.destroy();
+  }
 });
 
 // Quit when all windows are closed (except on macOS)
