@@ -1,5 +1,6 @@
 {
   "name": "meeting-nudge",
+  "productName": "Meeting Nudge",
   "version": "1.0.0",
   "description": "Meeting reminder with full-screen blocking alerts",
   "main": "src/main/index.js",
