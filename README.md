@@ -1,6 +1,8 @@
-# Meeting Nudge
+# 🦉 Meeting Nudge
 
-![Meeting Nudge icon](resources/readme-icon.png)
+<p align="center">
+  <img src="resources/readme-icon.png" alt="Meeting Nudge" width="128" height="128">
+</p>
 
 A cross-platform desktop app that blocks your entire screen before meetings, making it **impossible to miss them**. Built for anyone who experiences time blindness.
 
