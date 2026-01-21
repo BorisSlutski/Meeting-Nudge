@@ -1,6 +1,6 @@
 # Meeting Nudge
 
-![Meeting Nudge icon](resources/tray-icon.png)
+![Meeting Nudge icon](resources/readme-icon.png)
 
 A cross-platform desktop app that blocks your entire screen before meetings, making it **impossible to miss them**. Built for anyone who experiences time blindness.
 
@@ -151,7 +151,7 @@ Host the installer files anywhere:
 
 For advanced users, create a Homebrew Cask formula so users can install with:
 ```bash
-brew install --cask adhd-meeting-reminder
+brew install --cask meeting-nudge
 ```
 
 See [Homebrew Cask documentation](https://docs.brew.sh/How-to-Create-and-Maintain-a-Tap) for details.
@@ -160,7 +160,7 @@ See [Homebrew Cask documentation](https://docs.brew.sh/How-to-Create-and-Maintai
 
 Since this is free distribution (not notarized), macOS shows a warning:
 
-> "adhd-meeting-reminder" cannot be opened because it is from an unidentified developer.
+> "meeting-nudge" cannot be opened because it is from an unidentified developer.
 
 **How users can bypass it (one-time only):**
 
