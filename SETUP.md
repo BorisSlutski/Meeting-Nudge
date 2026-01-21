@@ -23,14 +23,19 @@ npm start
 ## Development
 
 ```bash
-# Run with logging
+# Run with logging (development mode)
 npm run dev
 
 # Build for distribution
 npm run build:mac      # macOS
 npm run build:win      # Windows
 npm run build:linux    # Linux
+
+# Test the built app (with correct name in dock)
+open "dist/mac-arm64/Meeting Nudge.app"  # macOS after building
 ```
+
+**Note:** In development mode (`npm start`), the dock tooltip may show "Electron" due to macOS caching. The built app always shows "Meeting Nudge" correctly.
 
 ## Testing the App
 
