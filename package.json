@@ -14,17 +14,17 @@
   "author": "Boris",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^28.1.0",
+    "electron": "^39.2.7",
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
     "electron-store": "^8.1.0",
     "googleapis": "^129.0.0",
-    "node-schedule": "^2.1.1",
-    "keytar": "^7.9.0"
+    "keytar": "^7.9.0",
+    "node-schedule": "^2.1.1"
   },
   "build": {
-    "appId": "com.adhd.meeting-reminder",
+    "appId": "com.meeting.nudge",
     "productName": "Meeting Nudge",
     "directories": {
       "output": "dist"
@@ -36,16 +36,25 @@
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "resources/icon.png",
-      "target": ["dmg", "zip"]
+      "target": [
+        "dmg",
+        "zip"
+      ]
     },
     "win": {
       "icon": "resources/icon.png",
-      "target": ["nsis", "portable"]
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "linux": {
       "icon": "resources/icon.png",
       "category": "Utility",
-      "target": ["AppImage", "deb"]
+      "target": [
+        "AppImage",
+        "deb"
+      ]
     }
   }
 }

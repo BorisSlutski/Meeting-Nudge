@@ -3,14 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:;">
   <title>Meeting Nudge - Settings</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>Meeting Nudge</h1>
+      <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
+        <img src="../assets/owl-icon.png" alt="Owl Icon" style="width: 64px; height: 64px;">
+        <h1 style="margin: 0;">Meeting Nudge</h1>
+      </div>
       <p class="subtitle">Never miss a meeting again</p>
     </header>
 
@@ -85,22 +88,28 @@
       </section>
 
       <!-- Google OAuth Credentials -->
-      <section class="card">
-        <h2>Google OAuth Credentials</h2>
-        <p class="setting-note">
-          Set these once to enable Google Calendar. Stored securely in your OS keychain.
-        </p>
-        <div class="setting-item">
-          <label for="google-client-id">Client ID</label>
-          <input type="text" id="google-client-id" placeholder="YOUR_CLIENT_ID">
-        </div>
-        <div class="setting-item">
-          <label for="google-client-secret">Client Secret</label>
-          <input type="password" id="google-client-secret" placeholder="YOUR_CLIENT_SECRET">
-        </div>
-        <div class="setting-actions">
-          <button class="btn" id="oauth-save-btn">Save Credentials</button>
-          <span class="inline-status" id="oauth-status" aria-live="polite"></span>
+      <section class="card collapsible collapsed" id="oauth-section">
+        <h2 id="oauth-header" class="collapsible-header">
+          Google OAuth Credentials
+          <span class="credentials-status" id="credentials-badge"></span>
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <p class="setting-note">
+            Set these once to enable Google Calendar. Stored securely in your OS keychain.
+          </p>
+          <div class="setting-item">
+            <label for="google-client-id">Client ID</label>
+            <input type="text" id="google-client-id" placeholder="YOUR_CLIENT_ID">
+          </div>
+          <div class="setting-item">
+            <label for="google-client-secret">Client Secret</label>
+            <input type="password" id="google-client-secret" placeholder="YOUR_CLIENT_SECRET">
+          </div>
+          <div class="setting-actions">
+            <button class="btn" id="oauth-save-btn">Save Credentials</button>
+            <span class="inline-status" id="oauth-status" aria-live="polite"></span>
+          </div>
         </div>
       </section>
 

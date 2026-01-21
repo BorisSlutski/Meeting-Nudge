@@ -295,11 +295,24 @@ input[type="password"]:focus {
 
 .collapsible-header {
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.credentials-status {
+  font-size: 14px;
+  font-weight: 500;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: rgba(76, 175, 80, 0.1);
+  margin-left: 12px;
 }
 
 .toggle-icon {
   margin-left: auto;
   transition: transform 0.2s;
+  font-size: 14px;
 }
 
 .collapsible.collapsed .toggle-icon {

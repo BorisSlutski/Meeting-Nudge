@@ -186,8 +186,29 @@ async function loadOAuthConfig() {
   const config = await window.electronAPI.getOAuthConfig();
   oauthClientId.value = config.clientId || '';
   oauthClientSecret.value = config.clientSecret || '';
-  if (config.clientId || config.clientSecret) {
+  
+  const oauthSection = document.getElementById('oauth-section');
+  const credentialsBadge = document.getElementById('credentials-badge');
+  
+  if (config.clientId && config.clientSecret) {
     setOAuthStatus('Saved');
+    // Hide section if credentials exist
+    if (oauthSection) {
+      oauthSection.classList.add('collapsed');
+    }
+    if (credentialsBadge) {
+      credentialsBadge.textContent = '✓ Configured';
+      credentialsBadge.style.color = '#4caf50';
+    }
+  } else {
+    // Show section if no credentials
+    if (oauthSection) {
+      oauthSection.classList.remove('collapsed');
+    }
+    if (credentialsBadge) {
+      credentialsBadge.textContent = '⚠ Not configured';
+      credentialsBadge.style.color = '#ff9800';
+    }
   }
 }
 
@@ -203,8 +224,23 @@ async function saveOAuthConfig() {
     clientId: oauthClientId.value.trim(),
     clientSecret: oauthClientSecret.value.trim()
   });
+  
+  const oauthSection = document.getElementById('oauth-section');
+  const credentialsBadge = document.getElementById('credentials-badge');
+  
   if (result.success) {
-    setOAuthStatus('Saved');
+    setOAuthStatus('Saved! Section will auto-collapse in 2 seconds...');
+    // Auto-collapse after save
+    setTimeout(() => {
+      if (oauthSection) {
+        oauthSection.classList.add('collapsed');
+      }
+      if (credentialsBadge) {
+        credentialsBadge.textContent = '✓ Configured';
+        credentialsBadge.style.color = '#4caf50';
+      }
+      setOAuthStatus('');
+    }, 2000);
   } else {
     setOAuthStatus(result.error || 'Save failed');
   }
@@ -287,6 +323,15 @@ const setupSection = document.getElementById('setup-section');
 if (setupHeader && setupSection) {
   setupHeader.addEventListener('click', () => {
     setupSection.classList.toggle('collapsed');
+  });
+}
+
+// OAuth credentials toggle
+const oauthHeader = document.getElementById('oauth-header');
+const oauthSection = document.getElementById('oauth-section');
+if (oauthHeader && oauthSection) {
+  oauthHeader.addEventListener('click', () => {
+    oauthSection.classList.toggle('collapsed');
   });
 }
 

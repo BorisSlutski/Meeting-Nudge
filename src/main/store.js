@@ -1,7 +1,7 @@
 const Store = require('electron-store');
 const keytar = require('keytar');
 
-const SERVICE_NAME = 'adhd-meeting-reminder';
+const SERVICE_NAME = 'meeting-nudge';
 
 /**
  * Secure token storage using OS keychain
