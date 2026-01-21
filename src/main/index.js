@@ -6,6 +6,9 @@ const { Scheduler } = require('./scheduler');
 const { GoogleCalendar } = require('./calendar/google');
 const { SecureStore } = require('./store');
 
+// Set app name immediately (before app is ready)
+app.setName('Meeting Nudge');
+
 // Initialize store for settings
 const store = new Store({
   defaults: {
@@ -299,9 +302,6 @@ async function initialize() {
 
 // App ready
 app.whenReady().then(async () => {
-  // Set app name (shows in dock tooltip on macOS)
-  app.setName('Meeting Nudge');
-  
   // Set app icon for dock/taskbar (works in development mode too)
   const iconPath = path.join(__dirname, '..', '..', 'resources', 'icon.png');
   const appIcon = nativeImage.createFromPath(iconPath);
