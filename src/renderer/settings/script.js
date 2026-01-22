@@ -699,11 +699,16 @@ function updateCalendarBadge(count) {
 }
 
 async function loadCalendars() {
-  if (!calendarsList) return;
+  if (!calendarsList) {
+    console.error('calendarsList element not found');
+    return;
+  }
 
   try {
+    console.log('Loading calendars...');
     calendarStatus.textContent = 'Loading calendars...';
     const result = await window.electronAPI.listGoogleCalendars();
+    console.log('Calendar list result:', result);
 
     if (!result.success) {
       calendarStatus.textContent = `Error: ${result.error}`;
@@ -735,10 +740,22 @@ async function loadCalendars() {
       </label>
     `).join('');
 
-    // Add change listeners
-    document.querySelectorAll('.calendar-checkbox').forEach(checkbox => {
-      checkbox.addEventListener('change', saveSelectedCalendars);
-    });
+    // Add change listeners using event delegation (single listener on parent)
+    // Remove any existing listeners first to avoid duplicates
+    if (calendarsList._calendarChangeListener) {
+      calendarsList.removeEventListener('change', calendarsList._calendarChangeListener);
+    }
+
+    calendarsList._calendarChangeListener = function(event) {
+      if (event.target.classList.contains('calendar-checkbox')) {
+        console.log('Calendar checkbox changed:', event.target.dataset.calendarId, event.target.checked);
+        saveSelectedCalendars();
+      }
+    };
+
+    calendarsList.addEventListener('change', calendarsList._calendarChangeListener);
+
+    console.log(`Created ${result.calendars.length} calendar checkboxes`);
 
     // Update calendar count badge and auto-expand if we have calendars
     updateCalendarBadge(result.calendars.length);
@@ -762,12 +779,18 @@ async function loadCalendars() {
 
 async function saveSelectedCalendars() {
   try {
+    console.log('saveSelectedCalendars called');
+
     const selectedIds = Array.from(document.querySelectorAll('.calendar-checkbox:checked'))
       .map(cb => cb.dataset.calendarId);
+
+    console.log('Selected calendar IDs:', selectedIds);
 
     calendarStatus.textContent = 'Saving...';
 
     const result = await window.electronAPI.saveSelectedCalendars(selectedIds);
+
+    console.log('Save result:', result);
 
     if (result.success) {
       calendarStatus.textContent = `✓ Saved ${selectedIds.length} calendar(s)`;
