@@ -6,6 +6,7 @@ const { Scheduler } = require('./scheduler');
 const { GoogleCalendar } = require('./calendar/google');
 const { SecureStore } = require('./store');
 const { isSafeExternalUrl, MEETING_HOST_ALLOWLIST, EXTERNAL_HOST_ALLOWLIST } = require('./utils/url-validator');
+const { ThemeManager } = require('./theme');
 const { createLogger, getLogPath } = require('./utils/logger');
 
 // Create logger for this module
@@ -36,6 +37,7 @@ let scheduler = null;
 let googleCalendar = null;
 let syncTimer = null;
 let isQuitting = false;
+let themeManager = null;
 
 // All calendar events
 let allEvents = [];
@@ -133,7 +135,8 @@ function createSettingsWindow() {
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      additionalArguments: [`--theme=${themeManager.getCurrentTheme()}`]
     }
   });
 
@@ -165,12 +168,13 @@ function createBlockingWindow(event) {
     skipTaskbar: true,
     frame: false,
     transparent: false,
-    backgroundColor: '#1a1a2e',
+    backgroundColor: themeManager.getCurrentTheme() === 'dark' ? '#1a1a2e' : '#e3f2fd',
     icon: iconPath,
     webPreferences: {
       preload: path.join(__dirname, '..', 'preload.js'),
       contextIsolation: true,
-      nodeIntegration: false
+      nodeIntegration: false,
+      additionalArguments: [`--theme=${themeManager.getCurrentTheme()}`]
     }
   });
 
@@ -219,7 +223,7 @@ function closeBlockingWindow() {
  * @param {number} attemptNumber - Current attempt number (for retry tracking)
  */
 async function syncCalendars(attemptNumber = 0) {
-  logger.info(`Syncing calendars... (attempt ${attemptNumber + 1}/${syncState.maxRetries})`);
+  console.log(`Syncing calendars... (attempt ${attemptNumber + 1}/${syncState.maxRetries})`);
   
   try {
     allEvents = [];
@@ -229,9 +233,9 @@ async function syncCalendars(attemptNumber = 0) {
       try {
         const googleEvents = await googleCalendar.getUpcomingEvents();
         allEvents = allEvents.concat(googleEvents);
-        logger.debug(`Fetched ${googleEvents.length} events from Google Calendar`);
+        console.log(`Fetched ${googleEvents.length} events from Google Calendar`);
       } catch (error) {
-        logger.error('Google Calendar sync error:', error.message);
+        console.error('Google Calendar sync error:', error.message);
         
         // If it's an auth error, don't retry
         if (error.message.includes('expired') || error.message.includes('authentication')) {
@@ -262,10 +266,10 @@ async function syncCalendars(attemptNumber = 0) {
     syncState.syncAttempts = 0;
     syncState.lastError = null;
 
-    logger.info(`✓ Synced ${allEvents.length} events successfully`);
+    console.log(`✓ Synced ${allEvents.length} events successfully`);
     
   } catch (error) {
-    logger.error('Error syncing calendars:', error);
+    console.error('Error syncing calendars:', error);
     
     // Update sync state on failure
     syncState.lastSyncSuccess = false;
@@ -278,7 +282,7 @@ async function syncCalendars(attemptNumber = 0) {
     if (!isAuthError && attemptNumber < syncState.maxRetries - 1) {
       // Calculate exponential backoff delay
       const delay = syncState.retryDelay * Math.pow(2, attemptNumber);
-      logger.warn(`⚠ Sync failed, retrying in ${delay / 1000} seconds...`);
+      console.log(`⚠ Sync failed, retrying in ${delay / 1000} seconds...`);
       
       // Schedule retry
       setTimeout(() => {
@@ -286,7 +290,7 @@ async function syncCalendars(attemptNumber = 0) {
       }, delay);
     } else {
       // Max retries reached or auth error - notify user
-      logger.error(`✗ Sync failed after ${attemptNumber + 1} attempts: ${error.message}`);
+      console.error(`✗ Sync failed after ${attemptNumber + 1} attempts: ${error.message}`);
       
       // Update tray to show error
       if (trayManager) {
@@ -331,7 +335,7 @@ async function initialize() {
       // Check if reminders are paused
       const pausedUntil = store.get('pausedUntil');
       if (pausedUntil && new Date(pausedUntil) > new Date()) {
-        logger.info('Reminders paused, skipping alert');
+        console.log('Reminders paused, skipping alert');
         return;
       }
       createBlockingWindow(event);
@@ -361,7 +365,7 @@ async function initialize() {
         });
         
         notification.show();
-        logger.debug(`Preview notification shown for: ${event.title}`);
+        console.log(`Preview notification shown for: ${event.title}`);
       }
     }
   );
@@ -407,6 +411,10 @@ app.whenReady().then(async () => {
     app.dock.setIcon(appIcon);
   }
   
+  // Initialize theme manager
+  themeManager = new ThemeManager(store);
+  themeManager.applyTheme();
+
   await initialize();
 
   // macOS: re-create window when dock icon clicked
@@ -536,6 +544,30 @@ ipcMain.handle('get-sync-status', () => {
     syncAttempts: syncState.syncAttempts,
     lastError: syncState.lastError
   };
+});
+
+ipcMain.handle('get-app-version', () => {
+  return app.getVersion();
+});
+
+// Theme handlers
+ipcMain.handle('get-theme', () => {
+  if (!themeManager) {
+    return { preference: 'system', resolved: 'light' };
+  }
+  return themeManager.getThemePreference();
+});
+
+ipcMain.handle('set-theme', (event, theme) => {
+  if (!themeManager) {
+    return { success: false, error: 'Theme manager not initialized' };
+  }
+  try {
+    themeManager.setTheme(theme);
+    return { success: true, theme: themeManager.getCurrentTheme() };
+  } catch (error) {
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('acknowledge-meeting', () => {

@@ -21,6 +21,9 @@ const pauseStatusText = document.getElementById('pause-status-text');
 const resumeBtn = document.getElementById('resume-btn');
 const syncStatus = document.getElementById('sync-status');
 
+// Theme elements
+const themeOptions = document.querySelectorAll('.theme-option');
+
 // Current settings
 let settings = {};
 let pauseUpdateInterval = null;
@@ -98,7 +101,10 @@ async function loadSettings() {
   
   // Load upcoming events
   await loadUpcomingEvents();
-  
+
+  // Load theme
+  await loadTheme();
+
   // Update pause status every minute
   if (pauseUpdateInterval) {
     clearInterval(pauseUpdateInterval);
@@ -106,7 +112,7 @@ async function loadSettings() {
   pauseUpdateInterval = setInterval(() => {
     updatePauseStatus();
   }, 60 * 1000);
-  
+
   // Update sync status every 30 seconds
   if (syncStatusInterval) {
     clearInterval(syncStatusInterval);
@@ -114,7 +120,7 @@ async function loadSettings() {
   syncStatusInterval = setInterval(() => {
     updateSyncStatus();
   }, 30 * 1000);
-  
+
   // Load log path
   loadLogPath();
 }
@@ -601,6 +607,57 @@ if (openLogBtn) {
     openLogBtn.disabled = false;
     openLogBtn.textContent = 'Open Log File';
   });
+}
+
+
+// Theme management
+async function loadTheme() {
+  if (!themeOptions.length) return;
+
+  try {
+    const themeData = await window.electronAPI.getTheme();
+    const preference = themeData.preference;
+    const resolved = themeData.resolved;
+
+    // Update UI selection
+    themeOptions.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.theme === preference);
+    });
+
+    // Apply theme to settings window
+    document.documentElement.setAttribute('data-theme', resolved);
+  } catch (error) {
+    console.error('Failed to load theme:', error);
+  }
+}
+
+// Theme switcher event listeners
+themeOptions.forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const theme = btn.dataset.theme;
+
+    // Update selection
+    themeOptions.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Save theme
+    try {
+      const result = await window.electronAPI.setTheme(theme);
+
+      // Apply to settings window
+      document.documentElement.setAttribute('data-theme', result.theme);
+    } catch (error) {
+      console.error('Failed to set theme:', error);
+    }
+  });
+});
+
+// Apply theme from command line arguments
+const args = process.argv;
+const themeArg = args.find(arg => arg.startsWith('--theme='));
+if (themeArg) {
+  const theme = themeArg.split('=')[1];
+  document.documentElement.setAttribute('data-theme', theme);
 }
 
 // Initialize

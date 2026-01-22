@@ -1,3 +1,11 @@
+// Apply theme from command line arguments
+const args = process.argv;
+const themeArg = args.find(arg => arg.startsWith('--theme='));
+if (themeArg) {
+  const theme = themeArg.split('=')[1];
+  document.documentElement.setAttribute('data-theme', theme);
+}
+
 // Current event data
 let currentEvent = null;
 let countdownInterval = null;

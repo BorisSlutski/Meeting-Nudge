@@ -19,8 +19,8 @@
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
-    "electron-log": "^5.0.1",
     "electron-store": "^8.1.0",
+    "electron-updater": "^6.1.7",
     "googleapis": "^129.0.0",
     "keytar": "^7.9.0",
     "node-schedule": "^2.1.1"
@@ -34,6 +34,13 @@
     "files": [
       "src/**/*",
       "resources/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "BorisSlutski",
+        "repo": "Meeting-Nudge"
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",

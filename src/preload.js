@@ -24,13 +24,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // External links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
 
-  // Test Mode
-  generateTestEvents: () => ipcRenderer.invoke('generate-test-events'),
-  testReminderNow: () => ipcRenderer.invoke('test-reminder-now'),
-
-  // Logging
-  getLogPath: () => ipcRenderer.invoke('get-log-path'),
-  openLogFile: () => ipcRenderer.invoke('open-log-file'),
+  // Theme
+  getTheme: () => ipcRenderer.invoke('get-theme'),
+  setTheme: (theme) => ipcRenderer.invoke('set-theme', theme),
 
   // Event listeners for blocking window
   onShowEvent: (callback) => {
