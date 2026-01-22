@@ -915,5 +915,14 @@ if (calendarHeader && calendarSection) {
   });
 }
 
+// Test & Debug section toggle
+const testHeader = document.getElementById('test-header');
+const testSection = document.getElementById('test-section');
+if (testHeader && testSection) {
+  testHeader.addEventListener('click', () => {
+    testSection.classList.toggle('collapsed');
+  });
+}
+
 // Initialize
 loadSettingsWithCalendars();

@@ -60,55 +60,6 @@
         </div>
       </section>
 
-      <!-- Calendar Selection -->
-      <section class="card collapsible collapsed" id="calendar-section">
-        <h2 id="calendar-header" class="collapsible-header">
-          📅 Calendar Selection
-          <span class="toggle-icon">▼</span>
-        </h2>
-        <div class="collapsible-content">
-          <p class="setting-note">
-            Choose which Google calendars to monitor for meetings. Select multiple calendars to get reminders from all of them. Your Primary calendar is selected by default.
-          </p>
-
-          <div class="setting-actions">
-            <button class="btn btn-secondary" id="refresh-calendars-btn">
-              Refresh Calendars
-            </button>
-            <button class="btn" id="create-calendar-btn">
-              ➕ Create Calendar
-            </button>
-          </div>
-
-          <!-- Create Calendar Form (hidden by default) -->
-          <div id="create-calendar-form" style="display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color);">
-            <h4 style="margin-top: 0; margin-bottom: 16px;">Create New Calendar</h4>
-            <div class="setting-item">
-              <label for="new-calendar-name">Calendar Name *</label>
-              <input type="text" id="new-calendar-name" placeholder="e.g., Work Meetings, Personal, Project Alpha" maxlength="100">
-            </div>
-            <div class="setting-item">
-              <label for="new-calendar-description">Description (optional)</label>
-              <input type="text" id="new-calendar-description" placeholder="Brief description of this calendar" maxlength="500">
-            </div>
-            <div class="setting-item">
-              <label for="new-calendar-location">Location (optional)</label>
-              <input type="text" id="new-calendar-location" placeholder="Default location for events" maxlength="100">
-            </div>
-            <div class="setting-actions" style="margin-top: 16px;">
-              <button class="btn" id="save-new-calendar-btn">Create Calendar</button>
-              <button class="btn btn-secondary" id="cancel-create-calendar-btn">Cancel</button>
-            </div>
-          </div>
-
-          <div id="calendars-list" style="margin-top: 16px;">
-            <!-- Calendars will be loaded here -->
-          </div>
-
-          <span class="inline-status" id="calendar-status"></span>
-        </div>
-      </section>
-
       <!-- Reminder Settings -->
       <section class="card">
         <h2>Reminder Settings</h2>
@@ -257,27 +208,81 @@
         </div>
       </section>
 
+      <!-- Calendar Selection -->
+      <section class="card collapsible collapsed" id="calendar-section">
+        <h2 id="calendar-header" class="collapsible-header">
+          📅 Calendar Selection
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <p class="setting-note">
+            Choose which Google calendars to monitor for meetings. Select multiple calendars to get reminders from all of them. Your Primary calendar is selected by default.
+          </p>
+
+          <div class="setting-actions">
+            <button class="btn btn-secondary" id="refresh-calendars-btn">
+              Refresh Calendars
+            </button>
+            <button class="btn" id="create-calendar-btn">
+              ➕ Create Calendar
+            </button>
+          </div>
+
+          <!-- Create Calendar Form (hidden by default) -->
+          <div id="create-calendar-form" style="display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color);">
+            <h4 style="margin-top: 0; margin-bottom: 16px;">Create New Calendar</h4>
+            <div class="setting-item">
+              <label for="new-calendar-name">Calendar Name *</label>
+              <input type="text" id="new-calendar-name" placeholder="e.g., Work Meetings, Personal, Project Alpha" maxlength="100">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-description">Description (optional)</label>
+              <input type="text" id="new-calendar-description" placeholder="Brief description of this calendar" maxlength="500">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-location">Location (optional)</label>
+              <input type="text" id="new-calendar-location" placeholder="Default location for events" maxlength="100">
+            </div>
+            <div class="setting-actions" style="margin-top: 16px;">
+              <button class="btn" id="save-new-calendar-btn">Create Calendar</button>
+              <button class="btn btn-secondary" id="cancel-create-calendar-btn">Cancel</button>
+            </div>
+          </div>
+
+          <div id="calendars-list" style="margin-top: 16px;">
+            <!-- Calendars will be loaded here -->
+          </div>
+
+          <span class="inline-status" id="calendar-status"></span>
+        </div>
+      </section>
+
       <!-- Test Mode (LAST SECTION) -->
-      <section class="card" id="test-section" style="border: 2px solid #ff9800;">
-        <h2>🧪 Test & Debug</h2>
-        <h3 style="margin-top: 0;">Test Mode</h3>
-        <p class="setting-note">
-          Generate test meetings for development and demo purposes. No real calendar connection needed.
-        </p>
-        <div class="setting-actions">
-          <button class="btn" id="generate-test-btn">Generate Test Events</button>
-          <button class="btn" id="test-reminder-btn" style="background: #ff5722;">Test Reminder Now</button>
+      <section class="card collapsible collapsed" id="test-section" style="border: 2px solid #ff9800;">
+        <h2 id="test-header" class="collapsible-header">
+          🧪 Test & Debug
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <h3 style="margin-top: 0;">Test Mode</h3>
+          <p class="setting-note">
+            Generate test meetings for development and demo purposes. No real calendar connection needed.
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="generate-test-btn">Generate Test Events</button>
+            <button class="btn" id="test-reminder-btn" style="background: #ff5722;">Test Reminder Now</button>
+          </div>
+          <span class="inline-status" id="test-status" aria-live="polite"></span>
+          
+          <h3 style="margin-top: 24px;">Logs & Debugging</h3>
+          <p class="setting-note">
+            Access application logs for troubleshooting. Logs are stored locally and rotated automatically (max 5MB).
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="open-log-btn" style="background: #607d8b;">Open Log File</button>
+          </div>
+          <span class="inline-status" id="log-path-text" style="font-size: 12px; color: #888;"></span>
         </div>
-        <span class="inline-status" id="test-status" aria-live="polite"></span>
-        
-        <h3 style="margin-top: 24px;">Logs & Debugging</h3>
-        <p class="setting-note">
-          Access application logs for troubleshooting. Logs are stored locally and rotated automatically (max 5MB).
-        </p>
-        <div class="setting-actions">
-          <button class="btn" id="open-log-btn" style="background: #607d8b;">Open Log File</button>
-        </div>
-        <span class="inline-status" id="log-path-text" style="font-size: 12px; color: #888;"></span>
       </section>
     </main>
 
