@@ -924,6 +924,15 @@ if (reminderHeader && reminderSection) {
   });
 }
 
+// Appearance section toggle
+const appearanceHeader = document.getElementById('appearance-header');
+const appearanceSection = document.getElementById('appearance-section');
+if (appearanceHeader && appearanceSection) {
+  appearanceHeader.addEventListener('click', () => {
+    appearanceSection.classList.toggle('collapsed');
+  });
+}
+
 // Test & Debug section toggle
 const testHeader = document.getElementById('test-header');
 const testSection = document.getElementById('test-section');

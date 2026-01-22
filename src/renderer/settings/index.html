@@ -132,24 +132,28 @@
       </section>
 
       <!-- Appearance -->
-      <section class="card">
-        <h2>🎨 Appearance</h2>
-        
-        <div class="setting-item">
-          <label>Theme:</label>
-          <div class="theme-selector">
-            <button class="theme-option" data-theme="light">
-              <span class="theme-icon">☀️</span>
-              <span>Light</span>
-            </button>
-            <button class="theme-option" data-theme="dark">
-              <span class="theme-icon">🌙</span>
-              <span>Dark</span>
-            </button>
-            <button class="theme-option active" data-theme="system">
-              <span class="theme-icon">💻</span>
-              <span>System</span>
-            </button>
+      <section class="card collapsible collapsed" id="appearance-section">
+        <h2 id="appearance-header" class="collapsible-header">
+          🎨 Appearance
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <div class="setting-item">
+            <label>Theme:</label>
+            <div class="theme-selector">
+              <button class="theme-option" data-theme="light">
+                <span class="theme-icon">☀️</span>
+                <span>Light</span>
+              </button>
+              <button class="theme-option" data-theme="dark">
+                <span class="theme-icon">🌙</span>
+                <span>Dark</span>
+              </button>
+              <button class="theme-option active" data-theme="system">
+                <span class="theme-icon">💻</span>
+                <span>System</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
