@@ -36,8 +36,9 @@ class GoogleCalendar {
 
   /**
    * Initialize OAuth client
+   * @param {number} port - Optional port for redirect URI (defaults to 8089)
    */
-  async initializeClient() {
+  async initializeClient(port = 8089) {
     await this.loadCredentials();
     if (!this.clientId || !this.clientSecret) {
       throw new Error('Google OAuth credentials not configured. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in Settings or environment.');
@@ -46,10 +47,42 @@ class GoogleCalendar {
     this.oauth2Client = new google.auth.OAuth2(
       this.clientId,
       this.clientSecret,
-      'http://localhost:8089/oauth/google/callback'
+      `http://localhost:${port}/oauth/google/callback`
     );
 
     this.calendar = google.calendar({ version: 'v3', auth: this.oauth2Client });
+  }
+
+  /**
+   * Find an available port in the range 8089-8099
+   * @returns {Promise<number>} Available port number
+   */
+  async findAvailablePort() {
+    const http = require('http');
+    const MIN_PORT = 8089;
+    const MAX_PORT = 8099;
+    
+    for (let port = MIN_PORT; port <= MAX_PORT; port++) {
+      try {
+        await new Promise((resolve, reject) => {
+          const testServer = http.createServer();
+          testServer.once('error', (err) => {
+            testServer.close();
+            reject(err);
+          });
+          testServer.once('listening', () => {
+            testServer.close();
+            resolve();
+          });
+          testServer.listen(port, '127.0.0.1');
+        });
+        return port;
+      } catch (error) {
+        // Port in use, try next one
+        continue;
+      }
+    }
+    throw new Error(`No available ports in range ${MIN_PORT}-${MAX_PORT}`);
   }
 
   /**
@@ -57,6 +90,7 @@ class GoogleCalendar {
    * @returns {Promise<void>}
    */
   async authenticate() {
+    // Initialize with default port for checking existing token
     await this.initializeClient();
 
     // Check for existing refresh token
@@ -73,6 +107,13 @@ class GoogleCalendar {
         await SecureStore.deleteToken(TOKEN_KEY);
       }
     }
+
+    // Find available port for new authentication
+    const port = await this.findAvailablePort();
+    console.log(`Google OAuth: Using port ${port}`);
+    
+    // Re-initialize with the available port
+    await this.initializeClient(port);
 
     // Start OAuth flow
     return new Promise((resolve, reject) => {
@@ -174,11 +215,11 @@ class GoogleCalendar {
 
       server.on('error', (error) => {
         authWindow.close();
-        finish(error);
+        finish(new Error(`OAuth server error on port ${port}: ${error.message}`));
       });
 
-      server.listen(8089, '127.0.0.1', () => {
-        console.log('Google OAuth callback server listening on port 8089');
+      server.listen(port, '127.0.0.1', () => {
+        console.log(`Google OAuth callback server listening on port ${port}`);
         authWindow.loadURL(authUrl);
       });
 
@@ -269,10 +310,25 @@ class GoogleCalendar {
     } catch (error) {
       console.error('Error fetching Google Calendar events:', error);
       
-      // If token expired, clear it
-      if (error.code === 401) {
+      // If token expired or invalid auth, clear it and notify user
+      if (error.code === 401 || error.code === 403) {
         await this.disconnect();
         this.store.set('googleConnected', false);
+        
+        // Show notification to user
+        const { dialog, BrowserWindow } = require('electron');
+        const windows = BrowserWindow.getAllWindows();
+        if (windows.length > 0) {
+          dialog.showMessageBox(windows[0], {
+            type: 'warning',
+            title: 'Google Calendar Disconnected',
+            message: 'Your Google Calendar connection expired',
+            detail: 'Please reconnect your Google Calendar in Settings to continue receiving meeting reminders.',
+            buttons: ['OK']
+          });
+        }
+        
+        throw new Error('Google Calendar authentication expired. Please reconnect in Settings.');
       }
       
       return [];

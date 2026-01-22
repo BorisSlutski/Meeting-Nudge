@@ -6,13 +6,16 @@ const { isSafeExternalUrl, MEETING_HOST_ALLOWLIST } = require('./utils/url-valid
  * System tray manager
  */
 class TrayManager {
-  constructor(onSettings, onSync, onPause, onQuit) {
+  constructor(onSettings, onSync, onPause, onQuit, store) {
     this.tray = null;
     this.onSettings = onSettings;
     this.onSync = onSync;
     this.onPause = onPause;
     this.onQuit = onQuit;
+    this.store = store;
     this.upcomingEvents = [];
+    this.syncError = null;
+    this.lastSyncTime = null;
     
     this.createTray();
   }
@@ -82,10 +85,60 @@ class TrayManager {
   }
 
   /**
+   * Check if reminders are currently paused
+   * @returns {boolean}
+   */
+  isPaused() {
+    if (!this.store) return false;
+    const pausedUntil = this.store.get('pausedUntil');
+    return pausedUntil && new Date(pausedUntil) > new Date();
+  }
+
+  /**
+   * Get pause status text
+   * @returns {string|null}
+   */
+  getPauseStatus() {
+    if (!this.isPaused()) return null;
+    const pausedUntil = new Date(this.store.get('pausedUntil'));
+    const now = new Date();
+    const minutesLeft = Math.ceil((pausedUntil - now) / (1000 * 60));
+    
+    if (minutesLeft < 60) {
+      return `Paused for ${minutesLeft} min`;
+    } else {
+      const hoursLeft = Math.floor(minutesLeft / 60);
+      const remainingMinutes = minutesLeft % 60;
+      if (remainingMinutes === 0) {
+        return `Paused for ${hoursLeft}h`;
+      }
+      return `Paused for ${hoursLeft}h ${remainingMinutes}m`;
+    }
+  }
+
+  /**
    * Update the tray menu
    */
   updateMenu() {
     const menuItems = [];
+
+    // Pause status banner (if paused)
+    if (this.isPaused()) {
+      const pauseStatus = this.getPauseStatus();
+      menuItems.push({ 
+        label: `⏸️  ${pauseStatus}`, 
+        enabled: false,
+        type: 'normal'
+      });
+      menuItems.push({
+        label: 'Resume Now',
+        click: () => {
+          this.store.set('pausedUntil', null);
+          this.updateMenu();
+        }
+      });
+      menuItems.push({ type: 'separator' });
+    }
 
     // Upcoming events section
     if (this.upcomingEvents.length > 0) {
@@ -115,24 +168,28 @@ class TrayManager {
       menuItems.push({ type: 'separator' });
     }
 
-    // Actions
+    // Actions with sync status
+    const syncStatus = this.getLastSyncStatus();
     menuItems.push({
-      label: 'Sync Now',
+      label: syncStatus === 'Just synced' ? '✓ Sync Now' : 'Sync Now',
+      sublabel: syncStatus,
       click: () => this.onSync()
     });
 
     menuItems.push({ type: 'separator' });
 
-    // Pause submenu
-    menuItems.push({
-      label: 'Pause Reminders',
-      submenu: [
-        { label: '30 minutes', click: () => this.onPause(30) },
-        { label: '1 hour', click: () => this.onPause(60) },
-        { label: '2 hours', click: () => this.onPause(120) },
-        { label: 'Until tomorrow', click: () => this.onPause(this.minutesUntilTomorrow()) }
-      ]
-    });
+    // Pause submenu (only show if not already paused)
+    if (!this.isPaused()) {
+      menuItems.push({
+        label: 'Pause Reminders',
+        submenu: [
+          { label: '30 minutes', click: () => this.onPause(30) },
+          { label: '1 hour', click: () => this.onPause(60) },
+          { label: '2 hours', click: () => this.onPause(120) },
+          { label: 'Until tomorrow', click: () => this.onPause(this.minutesUntilTomorrow()) }
+        ]
+      });
+    }
 
     menuItems.push({
       label: 'Settings',
@@ -160,7 +217,42 @@ class TrayManager {
    */
   updateEvents(events) {
     this.upcomingEvents = events;
+    this.syncError = null; // Clear error on successful sync
+    this.lastSyncTime = new Date();
     this.updateMenu();
+  }
+
+  /**
+   * Update sync error status
+   * @param {string} error - Error message
+   */
+  updateSyncError(error) {
+    this.syncError = error;
+    this.updateMenu();
+  }
+
+  /**
+   * Get last sync status text
+   * @returns {string}
+   */
+  getLastSyncStatus() {
+    if (this.syncError) {
+      return '⚠️ Sync Error';
+    }
+    if (this.lastSyncTime) {
+      const minutesAgo = Math.floor((new Date() - this.lastSyncTime) / (1000 * 60));
+      if (minutesAgo === 0) {
+        return 'Just synced';
+      } else if (minutesAgo === 1) {
+        return 'Synced 1 min ago';
+      } else if (minutesAgo < 60) {
+        return `Synced ${minutesAgo} min ago`;
+      } else {
+        const hoursAgo = Math.floor(minutesAgo / 60);
+        return `Synced ${hoursAgo}h ago`;
+      }
+    }
+    return 'Not synced';
   }
 
   /**

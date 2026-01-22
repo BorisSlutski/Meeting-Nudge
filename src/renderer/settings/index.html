@@ -36,6 +36,9 @@
         <button class="btn btn-secondary sync-button" id="sync-btn">
           Sync Now
         </button>
+        <p class="sync-status" id="sync-status" style="margin-top: 12px; font-size: 14px; color: #888;">
+          Not synced yet
+        </p>
       </section>
 
       <!-- Upcoming Meetings -->
@@ -43,6 +46,17 @@
         <h2>Upcoming Meetings</h2>
         <div id="upcoming-events" class="events-list">
           <p class="empty-state">No upcoming meetings</p>
+        </div>
+      </section>
+
+      <!-- Pause Status -->
+      <section class="card" id="pause-status-card" style="display: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h2 style="color: white; margin-bottom: 8px;">⏸️ Reminders Paused</h2>
+            <p id="pause-status-text" style="margin: 0; opacity: 0.9;">Paused</p>
+          </div>
+          <button class="btn" id="resume-btn" style="background: white; color: #667eea; border: none;">Resume Now</button>
         </div>
       </section>
 
@@ -84,6 +98,60 @@
             <input type="checkbox" id="sound-enabled" checked>
             <span>Play alert sound</span>
           </label>
+        </div>
+
+        <div class="setting-item" id="sound-options" style="margin-left: 28px;">
+          <label for="sound-file">Alert sound:</label>
+          <select id="sound-file">
+            <option value="default.mp3">Default Alert</option>
+            <option value="gentle.mp3">Gentle Chime</option>
+            <option value="urgent.mp3">Urgent Bell</option>
+            <option value="digital.mp3">Digital Beep</option>
+            <option value="custom.mp3">Custom Sound</option>
+          </select>
+        </div>
+
+        <div class="setting-item" id="volume-control" style="margin-left: 28px;">
+          <label for="sound-volume">Volume: <span id="volume-value">70</span>%</label>
+          <input type="range" id="sound-volume" min="0" max="100" value="70" style="width: 100%; max-width: 300px;">
+        </div>
+
+        <div class="setting-item">
+          <label class="checkbox-label">
+            <input type="checkbox" id="preview-notifications-enabled" checked>
+            <span>Show preview notification (30s before full-screen)</span>
+          </label>
+          <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
+            A gentle notification appears before the full-screen alert
+          </p>
+        </div>
+      </section>
+
+      <!-- Test Mode -->
+      <section class="card collapsible collapsed" id="test-section" style="border: 2px solid #ff9800;">
+        <h2 id="test-header" class="collapsible-header">
+          🧪 Test & Debug
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <h3 style="margin-top: 0;">Test Mode</h3>
+          <p class="setting-note">
+            Generate test meetings for development and demo purposes. No real calendar connection needed.
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="generate-test-btn">Generate Test Events</button>
+            <button class="btn" id="test-reminder-btn" style="background: #ff5722;">Test Reminder Now</button>
+          </div>
+          <span class="inline-status" id="test-status" aria-live="polite"></span>
+          
+          <h3 style="margin-top: 24px;">Logs & Debugging</h3>
+          <p class="setting-note">
+            Access application logs for troubleshooting. Logs are stored locally and rotated automatically (max 5MB).
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="open-log-btn" style="background: #607d8b;">Open Log File</button>
+          </div>
+          <span class="inline-status" id="log-path-text" style="font-size: 12px; color: #888;"></span>
         </div>
       </section>
 

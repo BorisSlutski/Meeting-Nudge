@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Events
   getUpcomingEvents: () => ipcRenderer.invoke('get-upcoming-events'),
   syncCalendars: () => ipcRenderer.invoke('sync-calendars'),
+  getSyncStatus: () => ipcRenderer.invoke('get-sync-status'),
 
   // Blocking window actions
   acknowledgeMeeting: () => ipcRenderer.invoke('acknowledge-meeting'),
@@ -22,6 +23,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // External links
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
+
+  // Test Mode
+  generateTestEvents: () => ipcRenderer.invoke('generate-test-events'),
+  testReminderNow: () => ipcRenderer.invoke('test-reminder-now'),
+
+  // Logging
+  getLogPath: () => ipcRenderer.invoke('get-log-path'),
+  openLogFile: () => ipcRenderer.invoke('open-log-file'),
 
   // Event listeners for blocking window
   onShowEvent: (callback) => {

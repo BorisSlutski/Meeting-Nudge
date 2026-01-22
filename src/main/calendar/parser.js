@@ -81,6 +81,30 @@ const CONFERENCE_PATTERNS = [
     name: 'RingCentral',
     pattern: /https?:\/\/(?:[\w-]+\.)?ringcentral\.com\/[\w/-]+/gi,
     icon: '📞'
+  },
+  // Skype for Business
+  {
+    name: 'Skype',
+    pattern: /https?:\/\/(?:meet|join)\.(?:lync|skype)\.com\/[\w/-]+/gi,
+    icon: '💬'
+  },
+  // Gather.town
+  {
+    name: 'Gather',
+    pattern: /https?:\/\/(?:app\.)?gather\.town\/app\/[\w-/]+/gi,
+    icon: '🎮'
+  },
+  // Facebook Workplace Rooms
+  {
+    name: 'Workplace',
+    pattern: /https?:\/\/[\w-]+\.workplace\.com\/[\w/-]*room[\w/-]*/gi,
+    icon: '💼'
+  },
+  // Cisco Meeting
+  {
+    name: 'Cisco',
+    pattern: /https?:\/\/(?:[\w-]+\.)?ciscospark\.com\/[\w/-]+/gi,
+    icon: '🔵'
   }
 ];
 
@@ -104,12 +128,21 @@ function parseConferenceLink(event) {
     }
   }
 
-  // Search in location, description, and notes
+  // Check hangoutLink field (Google Calendar specific)
+  if (event.hangoutLink) {
+    const hangoutInfo = isConferenceLink(event.hangoutLink);
+    if (hangoutInfo) {
+      return hangoutInfo;
+    }
+  }
+
+  // Search in all text fields that might contain links
   const searchText = [
     event.location || '',
     event.description || '',
     event.notes || '',
-    event.body || ''
+    event.body || '',
+    event.htmlLink || ''
   ].join(' ');
 
   for (const conf of CONFERENCE_PATTERNS) {

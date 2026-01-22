@@ -4,10 +4,12 @@ const schedule = require('node-schedule');
  * Scheduler for meeting reminders
  */
 class Scheduler {
-  constructor(store, onReminder) {
+  constructor(store, onReminder, onPreviewNotification) {
     this.store = store;
     this.onReminder = onReminder;
+    this.onPreviewNotification = onPreviewNotification; // Optional preview callback
     this.scheduledJobs = new Map();
+    this.previewJobs = new Map(); // Track preview notification jobs
     this.snoozedJobs = new Map(); // Track snoozed reminders
     this.events = [];
   }
@@ -30,8 +32,15 @@ class Scheduler {
       job.cancel();
     }
     this.scheduledJobs.clear();
+    
+    for (const job of this.previewJobs.values()) {
+      job.cancel();
+    }
+    this.previewJobs.clear();
 
     const reminderTimes = this.store.get('reminderTimes') || [10, 5, 1];
+    const previewEnabled = this.store.get('previewNotificationsEnabled') !== false;
+    const previewSeconds = 30; // Preview 30 seconds before full-screen
     const now = new Date();
 
     for (const event of this.events) {
@@ -51,6 +60,29 @@ class Scheduler {
           continue;
         }
 
+        // Schedule preview notification if enabled
+        if (previewEnabled && this.onPreviewNotification) {
+          const previewTime = new Date(reminderTime.getTime() - previewSeconds * 1000);
+          
+          if (previewTime > now) {
+            const previewId = `preview-${event.id}-${minutesBefore}`;
+            
+            const previewJob = schedule.scheduleJob(previewTime, () => {
+              console.log(`Preview notification: ${event.title} (${minutesBefore} min before)`);
+              this.onPreviewNotification({
+                ...event,
+                reminderMinutes: minutesBefore
+              });
+            });
+            
+            if (previewJob) {
+              this.previewJobs.set(previewId, previewJob);
+              console.log(`Scheduled preview: ${event.title} at ${previewTime.toLocaleString()}`);
+            }
+          }
+        }
+
+        // Schedule main reminder
         const jobId = `${event.id}-${minutesBefore}`;
         
         const job = schedule.scheduleJob(reminderTime, () => {
@@ -70,7 +102,7 @@ class Scheduler {
       }
     }
 
-    console.log(`Scheduled ${this.scheduledJobs.size} reminders`);
+    console.log(`Scheduled ${this.scheduledJobs.size} reminders and ${this.previewJobs.size} previews`);
   }
 
   /**
@@ -145,6 +177,11 @@ class Scheduler {
       job.cancel();
     }
     this.scheduledJobs.clear();
+    
+    for (const job of this.previewJobs.values()) {
+      job.cancel();
+    }
+    this.previewJobs.clear();
     
     for (const job of this.snoozedJobs.values()) {
       job.cancel();

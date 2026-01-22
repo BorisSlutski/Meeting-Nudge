@@ -7,14 +7,66 @@ const remind10 = document.getElementById('remind-10');
 const remind5 = document.getElementById('remind-5');
 const remind1 = document.getElementById('remind-1');
 const soundEnabled = document.getElementById('sound-enabled');
+const soundFile = document.getElementById('sound-file');
+const soundVolume = document.getElementById('sound-volume');
+const volumeValue = document.getElementById('volume-value');
+const previewNotificationsEnabled = document.getElementById('preview-notifications-enabled');
 const syncInterval = document.getElementById('sync-interval');
 const oauthClientId = document.getElementById('google-client-id');
 const oauthClientSecret = document.getElementById('google-client-secret');
 const oauthSaveBtn = document.getElementById('oauth-save-btn');
 const oauthStatus = document.getElementById('oauth-status');
+const pauseStatusCard = document.getElementById('pause-status-card');
+const pauseStatusText = document.getElementById('pause-status-text');
+const resumeBtn = document.getElementById('resume-btn');
+const syncStatus = document.getElementById('sync-status');
 
 // Current settings
 let settings = {};
+let pauseUpdateInterval = null;
+let syncStatusInterval = null;
+
+/**
+ * Update sync status display
+ */
+async function updateSyncStatus() {
+  if (!syncStatus) return;
+  
+  try {
+    const status = await window.electronAPI.getSyncStatus();
+    
+    if (!status.lastSyncTime) {
+      syncStatus.textContent = 'Not synced yet';
+      syncStatus.style.color = '#888';
+      return;
+    }
+    
+    const lastSync = new Date(status.lastSyncTime);
+    const minutesAgo = Math.floor((new Date() - lastSync) / (1000 * 60));
+    
+    let timeText;
+    if (minutesAgo === 0) {
+      timeText = 'just now';
+    } else if (minutesAgo === 1) {
+      timeText = '1 minute ago';
+    } else if (minutesAgo < 60) {
+      timeText = `${minutesAgo} minutes ago`;
+    } else {
+      const hoursAgo = Math.floor(minutesAgo / 60);
+      timeText = hoursAgo === 1 ? '1 hour ago' : `${hoursAgo} hours ago`;
+    }
+    
+    if (status.lastSyncSuccess) {
+      syncStatus.textContent = `✓ Last synced ${timeText}`;
+      syncStatus.style.color = '#4caf50';
+    } else {
+      syncStatus.textContent = `⚠ Sync failed ${timeText}: ${status.lastError || 'Unknown error'}`;
+      syncStatus.style.color = '#ff5722';
+    }
+  } catch (error) {
+    console.error('Failed to get sync status:', error);
+  }
+}
 
 /**
  * Load settings from main process
@@ -25,7 +77,19 @@ async function loadSettings() {
   // Update UI with settings
   updateConnectionStatus();
   updateReminderCheckboxes();
+  updatePauseStatus();
+  updateSyncStatus();
   soundEnabled.checked = settings.soundEnabled !== false;
+  if (soundFile) {
+    soundFile.value = settings.soundFile || 'default.mp3';
+  }
+  if (soundVolume && volumeValue) {
+    soundVolume.value = settings.soundVolume || 70;
+    volumeValue.textContent = soundVolume.value;
+  }
+  if (previewNotificationsEnabled) {
+    previewNotificationsEnabled.checked = settings.previewNotificationsEnabled !== false;
+  }
   if (syncInterval) {
     syncInterval.value = String(settings.syncInterval || 5);
   }
@@ -34,6 +98,74 @@ async function loadSettings() {
   
   // Load upcoming events
   await loadUpcomingEvents();
+  
+  // Update pause status every minute
+  if (pauseUpdateInterval) {
+    clearInterval(pauseUpdateInterval);
+  }
+  pauseUpdateInterval = setInterval(() => {
+    updatePauseStatus();
+  }, 60 * 1000);
+  
+  // Update sync status every 30 seconds
+  if (syncStatusInterval) {
+    clearInterval(syncStatusInterval);
+  }
+  syncStatusInterval = setInterval(() => {
+    updateSyncStatus();
+  }, 30 * 1000);
+  
+  // Load log path
+  loadLogPath();
+}
+
+/**
+ * Load and display log file path
+ */
+async function loadLogPath() {
+  if (!logPathText) return;
+  
+  try {
+    const logPath = await window.electronAPI.getLogPath();
+    logPathText.textContent = `Log location: ${logPath}`;
+  } catch (error) {
+    console.error('Failed to get log path:', error);
+  }
+}
+
+/**
+ * Update pause status display
+ */
+function updatePauseStatus() {
+  const pausedUntil = settings.pausedUntil;
+  
+  if (!pausedUntil || new Date(pausedUntil) <= new Date()) {
+    // Not paused or pause expired
+    pauseStatusCard.style.display = 'none';
+    return;
+  }
+
+  // Show pause banner
+  pauseStatusCard.style.display = 'block';
+  
+  const until = new Date(pausedUntil);
+  const now = new Date();
+  const minutesLeft = Math.ceil((until - now) / (1000 * 60));
+  
+  let statusText;
+  if (minutesLeft < 60) {
+    statusText = `Resuming in ${minutesLeft} minute${minutesLeft !== 1 ? 's' : ''}`;
+  } else {
+    const hoursLeft = Math.floor(minutesLeft / 60);
+    const remainingMinutes = minutesLeft % 60;
+    if (remainingMinutes === 0) {
+      statusText = `Resuming in ${hoursLeft} hour${hoursLeft !== 1 ? 's' : ''}`;
+    } else {
+      statusText = `Resuming in ${hoursLeft}h ${remainingMinutes}m`;
+    }
+  }
+  
+  pauseStatusText.textContent = statusText;
 }
 
 /**
@@ -82,7 +214,10 @@ async function saveSettings() {
   const newSettings = {
     reminderTimes: getSelectedReminderTimes(),
     syncInterval: parseInt(syncInterval?.value, 10) || 5,
-    soundEnabled: soundEnabled.checked
+    soundEnabled: soundEnabled.checked,
+    soundFile: soundFile?.value || 'default.mp3',
+    soundVolume: parseInt(soundVolume?.value, 10) || 70,
+    previewNotificationsEnabled: previewNotificationsEnabled?.checked !== false
   };
   
   await window.electronAPI.saveSettings(newSettings);
@@ -304,6 +439,7 @@ syncBtn.addEventListener('click', async () => {
   syncBtn.textContent = 'Syncing...';
   await window.electronAPI.syncCalendars();
   await loadUpcomingEvents();
+  await updateSyncStatus();
   syncBtn.textContent = 'Sync Now';
   syncBtn.disabled = false;
 });
@@ -313,6 +449,18 @@ remind10.addEventListener('change', saveSettings);
 remind5.addEventListener('change', saveSettings);
 remind1.addEventListener('change', saveSettings);
 soundEnabled.addEventListener('change', saveSettings);
+if (soundFile) {
+  soundFile.addEventListener('change', saveSettings);
+}
+if (soundVolume && volumeValue) {
+  soundVolume.addEventListener('input', () => {
+    volumeValue.textContent = soundVolume.value;
+  });
+  soundVolume.addEventListener('change', saveSettings);
+}
+if (previewNotificationsEnabled) {
+  previewNotificationsEnabled.addEventListener('change', saveSettings);
+}
 if (syncInterval) {
   syncInterval.addEventListener('change', saveSettings);
 }
@@ -335,6 +483,15 @@ if (oauthHeader && oauthSection) {
   });
 }
 
+// Test mode toggle
+const testHeader = document.getElementById('test-header');
+const testSection = document.getElementById('test-section');
+if (testHeader && testSection) {
+  testHeader.addEventListener('click', () => {
+    testSection.classList.toggle('collapsed');
+  });
+}
+
 // External links
 document.querySelectorAll('.external-link').forEach(link => {
   link.addEventListener('click', (e) => {
@@ -348,6 +505,102 @@ document.querySelectorAll('.external-link').forEach(link => {
 
 if (oauthSaveBtn) {
   oauthSaveBtn.addEventListener('click', saveOAuthConfig);
+}
+
+// Resume button
+if (resumeBtn) {
+  resumeBtn.addEventListener('click', async () => {
+    resumeBtn.disabled = true;
+    resumeBtn.textContent = 'Resuming...';
+    await window.electronAPI.saveSettings({ pausedUntil: null });
+    settings.pausedUntil = null;
+    updatePauseStatus();
+    resumeBtn.disabled = false;
+    resumeBtn.textContent = 'Resume Now';
+  });
+}
+
+// Test Mode: Generate test events
+const generateTestBtn = document.getElementById('generate-test-btn');
+const testReminderBtn = document.getElementById('test-reminder-btn');
+const testStatus = document.getElementById('test-status');
+const openLogBtn = document.getElementById('open-log-btn');
+const logPathText = document.getElementById('log-path-text');
+
+if (generateTestBtn) {
+  generateTestBtn.addEventListener('click', async () => {
+    generateTestBtn.disabled = true;
+    generateTestBtn.textContent = 'Generating...';
+    testStatus.textContent = '';
+    
+    const result = await window.electronAPI.generateTestEvents();
+    
+    if (result.success) {
+      testStatus.textContent = `✓ Generated ${result.count} test events`;
+      testStatus.style.color = '#4caf50';
+      await loadUpcomingEvents();
+      
+      setTimeout(() => {
+        testStatus.textContent = '';
+      }, 3000);
+    } else {
+      testStatus.textContent = '✗ Failed to generate test events';
+      testStatus.style.color = '#f44336';
+    }
+    
+    generateTestBtn.disabled = false;
+    generateTestBtn.textContent = 'Generate Test Events';
+  });
+}
+
+if (testReminderBtn) {
+  testReminderBtn.addEventListener('click', async () => {
+    testReminderBtn.disabled = true;
+    testReminderBtn.textContent = 'Triggering...';
+    testStatus.textContent = '';
+    
+    const result = await window.electronAPI.testReminderNow();
+    
+    if (result.success) {
+      testStatus.textContent = '✓ Test reminder triggered!';
+      testStatus.style.color = '#4caf50';
+      
+      setTimeout(() => {
+        testStatus.textContent = '';
+      }, 3000);
+    } else {
+      testStatus.textContent = '✗ Failed to trigger reminder';
+      testStatus.style.color = '#f44336';
+    }
+    
+    testReminderBtn.disabled = false;
+    testReminderBtn.textContent = 'Test Reminder Now';
+  });
+}
+
+// Open log file
+if (openLogBtn) {
+  openLogBtn.addEventListener('click', async () => {
+    openLogBtn.disabled = true;
+    openLogBtn.textContent = 'Opening...';
+    
+    const result = await window.electronAPI.openLogFile();
+    
+    if (result.success) {
+      logPathText.textContent = `✓ Opened: ${result.path}`;
+      logPathText.style.color = '#4caf50';
+      
+      setTimeout(() => {
+        loadLogPath();
+      }, 3000);
+    } else {
+      logPathText.textContent = '✗ Failed to open log file';
+      logPathText.style.color = '#f44336';
+    }
+    
+    openLogBtn.disabled = false;
+    openLogBtn.textContent = 'Open Log File';
+  });
 }
 
 // Initialize

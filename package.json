@@ -19,6 +19,7 @@
     "electron-builder": "^24.9.1"
   },
   "dependencies": {
+    "electron-log": "^5.0.1",
     "electron-store": "^8.1.0",
     "googleapis": "^129.0.0",
     "keytar": "^7.9.0",
