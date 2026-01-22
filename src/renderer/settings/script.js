@@ -833,6 +833,16 @@ async function createNewCalendar() {
     return;
   }
 
+  // Check if Google Calendar is connected first
+  if (!settings.googleConnected) {
+    const connectFirst = confirm('You need to connect Google Calendar first to create a new calendar. Would you like to connect now?');
+    if (connectFirst) {
+      // Trigger Google connection
+      googleBtn.click();
+    }
+    return;
+  }
+
   saveNewCalendarBtn.disabled = true;
   saveNewCalendarBtn.textContent = 'Creating...';
 
@@ -876,12 +886,17 @@ async function createNewCalendar() {
 async function loadSettingsWithCalendars() {
   await loadSettings();
 
+  // Always show calendar section (not collapsed) so create calendar is visible
+  if (calendarSection) {
+    calendarSection.classList.remove('collapsed');
+  }
+
   // Load calendars if Google is connected
   const googleConnected = settings.googleConnected;
   if (googleConnected) {
     await loadCalendars();
   } else {
-    calendarsList.innerHTML = '<p style="color: var(--text-secondary);">Please connect your Google Calendar first.</p>';
+    calendarsList.innerHTML = '<p style="color: var(--text-secondary);">Please connect your Google Calendar first to select existing calendars.</p>';
     // Clear any existing badge
     updateCalendarBadge(0);
   }
@@ -903,4 +918,4 @@ if (calendarHeader && calendarSection) {
 }
 
 // Initialize
-loadSettings();
+loadSettingsWithCalendars();
