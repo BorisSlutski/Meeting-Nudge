@@ -194,8 +194,18 @@ function createBlockingWindow(event) {
 
   blockingWindow.loadFile(path.join(__dirname, '..', 'renderer', 'blocking', 'index.html'));
 
+  // OPEN DEVTOOLS TO SEE RENDERER LOGS
+  blockingWindow.webContents.openDevTools({ mode: 'detach' });
+
   blockingWindow.webContents.on('did-finish-load', () => {
     blockingWindow.webContents.send('show-event', buildReminderPayload(event));
+    // Ensure window is visible and focused
+    blockingWindow.show();
+    blockingWindow.focus();
+    blockingWindow.moveTop();
+    
+    logger.info('Blocking window loaded and displayed');
+    console.log('✅ Blocking window is now visible with DevTools open');
   });
 
   // Block escape key
@@ -211,10 +221,29 @@ function createBlockingWindow(event) {
  */
 function closeBlockingWindow() {
   if (blockingWindow && !blockingWindow.isDestroyed()) {
-    // Use destroy() instead of close() because the window was created with closable: false
-    // and has a close event preventing normal closure
-    blockingWindow.destroy();
-    blockingWindow = null;
+    logger.info('Closing blocking window...');
+    console.log('Closing blocking window...');
+    
+    try {
+      // Remove all listeners before destroying to prevent conflicts
+      blockingWindow.removeAllListeners('close');
+      
+      // Force destroy the window (bypasses closable: false)
+      blockingWindow.destroy();
+      blockingWindow = null;
+      
+      logger.info('Blocking window closed successfully');
+      console.log('✓ Blocking window closed successfully');
+    } catch (error) {
+      logger.error('Error closing blocking window:', error);
+      console.error('Error closing blocking window:', error);
+      
+      // Force null even if destroy failed
+      blockingWindow = null;
+    }
+  } else {
+    logger.info('No blocking window to close (already closed or destroyed)');
+    console.log('No blocking window to close');
   }
 }
 
@@ -634,6 +663,8 @@ ipcMain.handle('set-theme', (event, theme) => {
 });
 
 ipcMain.handle('acknowledge-meeting', () => {
+  logger.info('Acknowledge meeting IPC called');
+  console.log('Acknowledge button - closing blocking window');
   closeBlockingWindow();
   return { success: true };
 });
@@ -641,6 +672,9 @@ ipcMain.handle('acknowledge-meeting', () => {
 ipcMain.handle('snooze-meeting', (event, data) => {
   const minutes = data?.minutes || 5;
   const meetingEvent = data?.event;
+  
+  logger.info(`Snooze meeting IPC called - ${minutes} minutes`);
+  console.log(`Snooze button - ${minutes} minutes, closing blocking window`);
 
   closeBlockingWindow();
 
@@ -654,6 +688,9 @@ ipcMain.handle('snooze-meeting', (event, data) => {
 });
 
 ipcMain.handle('join-meeting', (event, url) => {
+  logger.info(`Join meeting IPC called - URL: ${url}`);
+  console.log(`Join button clicked - URL: ${url}`);
+  
   if (!isSafeExternalUrl(url, MEETING_HOST_ALLOWLIST)) {
     return { success: false, error: 'Invalid URL' };
   }
@@ -745,8 +782,12 @@ ipcMain.handle('test-reminder-now', () => {
     reminderMinutes: 1
   };
   
+  logger.info('Test reminder triggered - creating blocking window');
+  
   // Trigger blocking window immediately
   createBlockingWindow(testEvent);
+  
+  logger.info('Blocking window created for test reminder');
   
   return { success: true };
 });

@@ -506,15 +506,6 @@ if (oauthHeader && oauthSection) {
   });
 }
 
-// Test mode toggle
-const testHeader = document.getElementById('test-header');
-const testSection = document.getElementById('test-section');
-if (testHeader && testSection) {
-  testHeader.addEventListener('click', () => {
-    testSection.classList.toggle('collapsed');
-  });
-}
-
 // External links
 document.querySelectorAll('.external-link').forEach(link => {
   link.addEventListener('click', (e) => {
@@ -669,13 +660,8 @@ themeOptions.forEach(btn => {
   });
 });
 
-// Apply theme from command line arguments
-const args = process.argv;
-const themeArg = args.find(arg => arg.startsWith('--theme='));
-if (themeArg) {
-  const theme = themeArg.split('=')[1];
-  document.documentElement.setAttribute('data-theme', theme);
-}
+// Theme will be applied by main process via additionalArguments
+// Note: process.argv is not available in renderer process
 
 // Calendar management
 function updateCalendarBadge(count) {
