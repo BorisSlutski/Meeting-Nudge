@@ -1,10 +1,5 @@
-// Apply theme from command line arguments
-const args = process.argv;
-const themeArg = args.find(arg => arg.startsWith('--theme='));
-if (themeArg) {
-  const theme = themeArg.split('=')[1];
-  document.documentElement.setAttribute('data-theme', theme);
-}
+// Theme will be applied by main process via additionalArguments
+// Note: process.argv is not available in renderer process
 
 // Current event data
 let currentEvent = null;
@@ -18,6 +13,8 @@ let meetingTitle, reminderPrefix, minutesLeft, reminderSuffix, meetingTime, time
 
 // Initialize DOM elements
 function initializeDOMElements() {
+  console.log('🔧 Initializing DOM elements...');
+  
   meetingTitle = document.getElementById('meeting-title');
   reminderPrefix = document.getElementById('reminder-prefix');
   minutesLeft = document.getElementById('minutes-left');
@@ -37,39 +34,96 @@ function initializeDOMElements() {
   alertSound = document.getElementById('alert-sound');
   container = document.querySelector('.container');
 
+  console.log('DOM elements found:');
+  console.log('- joinBtn:', !!joinBtn);
+  console.log('- acknowledgeBtn:', !!acknowledgeBtn);
+  console.log('- snoozeBtn:', !!snoozeBtn);
+  console.log('- snoozeMenuBtn:', !!snoozeMenuBtn);
+
+  // Add direct onclick test for acknowledge button
+  if (acknowledgeBtn) {
+    acknowledgeBtn.onclick = () => {
+      console.log('🔴 ONCLICK FIRED ON ACKNOWLEDGE BUTTON!');
+    };
+  }
+
   // Attach event listeners now that elements exist
   attachEventListeners();
+  
+  console.log('✅ DOM initialization complete');
 }
 
 // Attach event listeners to buttons
 function attachEventListeners() {
+  console.log('Attaching event listeners to buttons...');
+  console.log('window.electronAPI available:', !!window.electronAPI);
+  
   if (joinBtn) {
-    joinBtn.addEventListener('click', () => {
-      if (currentEvent?.conferenceLink) {
-        stopSound();
-        clearInterval(countdownInterval);
-        window.electronAPI.joinMeeting(currentEvent.conferenceLink);
+    console.log('Join button found, attaching listener');
+    joinBtn.addEventListener('click', async () => {
+      console.log('🔴 JOIN BUTTON CLICKED!');
+      try {
+        if (currentEvent?.conferenceLink) {
+          console.log('Conference link:', currentEvent.conferenceLink);
+          stopSound();
+          clearInterval(countdownInterval);
+          
+          const result = await window.electronAPI.joinMeeting(currentEvent.conferenceLink);
+          console.log('Join meeting result:', result);
+        } else {
+          console.log('No conference link available');
+        }
+      } catch (error) {
+        console.error('Error in join button handler:', error);
       }
     });
+  } else {
+    console.error('❌ Join button NOT FOUND');
   }
 
   if (acknowledgeBtn) {
-    acknowledgeBtn.addEventListener('click', () => {
-      stopSound();
-      clearInterval(countdownInterval);
-      window.electronAPI.acknowledgeMeeting();
+    console.log('Acknowledge button found, attaching listener');
+    
+    // Add a visual test - change button color when clicked
+    acknowledgeBtn.addEventListener('click', async () => {
+      console.log('🔴 ACKNOWLEDGE BUTTON CLICKED!');
+      acknowledgeBtn.style.background = 'red';
+      acknowledgeBtn.textContent = 'CLOSING...';
+      
+      try {
+        stopSound();
+        clearInterval(countdownInterval);
+        
+        const result = await window.electronAPI.acknowledgeMeeting();
+        console.log('Acknowledge result:', result);
+      } catch (error) {
+        console.error('Error in acknowledge button handler:', error);
+        acknowledgeBtn.textContent = 'ERROR!';
+      }
     });
+  } else {
+    console.error('❌ Acknowledge button NOT FOUND');
   }
 
   if (snoozeBtn) {
-    snoozeBtn.addEventListener('click', () => {
-      stopSound();
-      clearInterval(countdownInterval);
-      window.electronAPI.snoozeMeeting({
-        minutes: lastSnoozeMinutes,
-        event: currentEvent
-      });
+    console.log('Snooze button found, attaching listener');
+    snoozeBtn.addEventListener('click', async () => {
+      console.log('🔴 SNOOZE BUTTON CLICKED!');
+      try {
+        stopSound();
+        clearInterval(countdownInterval);
+        
+        const result = await window.electronAPI.snoozeMeeting({
+          minutes: lastSnoozeMinutes,
+          event: currentEvent
+        });
+        console.log('Snooze result:', result);
+      } catch (error) {
+        console.error('Error in snooze button handler:', error);
+      }
     });
+  } else {
+    console.error('❌ Snooze button NOT FOUND');
   }
 
   // Toggle snooze options menu
@@ -82,24 +136,33 @@ function attachEventListeners() {
 
   // Handle snooze option selection
   document.querySelectorAll('.snooze-option').forEach(option => {
-    option.addEventListener('click', (e) => {
+    option.addEventListener('click', async (e) => {
       e.stopPropagation();
-      const minutes = parseInt(option.getAttribute('data-minutes'), 10);
-      lastSnoozeMinutes = minutes;
+      console.log('🔴 SNOOZE OPTION CLICKED!');
+      
+      try {
+        const minutes = parseInt(option.getAttribute('data-minutes'), 10);
+        console.log('Snooze duration:', minutes);
+        lastSnoozeMinutes = minutes;
 
-      // Update button text
-      snoozeText.textContent = `Snooze ${minutes} min`;
+        // Update button text
+        snoozeText.textContent = `Snooze ${minutes} min`;
 
-      // Hide menu
-      snoozeOptions.classList.remove('show');
+        // Hide menu
+        snoozeOptions.classList.remove('show');
 
-      // Execute snooze
-      stopSound();
-      clearInterval(countdownInterval);
-      window.electronAPI.snoozeMeeting({
-        minutes: minutes,
-        event: currentEvent
-      });
+        // Execute snooze
+        stopSound();
+        clearInterval(countdownInterval);
+        
+        const result = await window.electronAPI.snoozeMeeting({
+          minutes: minutes,
+          event: currentEvent
+        });
+        console.log('Snooze option result:', result);
+      } catch (error) {
+        console.error('Error in snooze option handler:', error);
+      }
     });
   });
 

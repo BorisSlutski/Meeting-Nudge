@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data: file:;">
   <title>Meeting Nudge - Settings</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -42,10 +42,15 @@
       </section>
 
       <!-- Upcoming Meetings -->
-      <section class="card">
-        <h2>Upcoming Meetings</h2>
-        <div id="upcoming-events" class="events-list">
-          <p class="empty-state">No upcoming meetings</p>
+      <section class="card collapsible collapsed" id="upcoming-section">
+        <h2 id="upcoming-header" class="collapsible-header">
+          📅 Upcoming Meetings
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <div id="upcoming-events" class="events-list">
+            <p class="empty-state">No upcoming meetings</p>
+          </div>
         </div>
       </section>
 
@@ -60,169 +65,100 @@
         </div>
       </section>
 
-      <!-- Calendar Selection -->
-      <section class="card collapsible collapsed" id="calendar-section">
-        <h2 id="calendar-header" class="collapsible-header">
-          📅 Calendar Selection
-          <span class="toggle-icon">▼</span>
-        </h2>
-        <div class="collapsible-content">
-          <p class="setting-note">
-            Choose which Google calendars to monitor for meetings. Select multiple calendars to get reminders from all of them. Your Primary calendar is selected by default.
-          </p>
-
-          <div class="setting-actions">
-            <button class="btn btn-secondary" id="refresh-calendars-btn">
-              Refresh Calendars
-            </button>
-            <button class="btn" id="create-calendar-btn">
-              ➕ Create Calendar
-            </button>
-          </div>
-
-          <!-- Create Calendar Form (hidden by default) -->
-          <div id="create-calendar-form" style="display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color);">
-            <h4 style="margin-top: 0; margin-bottom: 16px;">Create New Calendar</h4>
-            <div class="setting-item">
-              <label for="new-calendar-name">Calendar Name *</label>
-              <input type="text" id="new-calendar-name" placeholder="e.g., Work Meetings, Personal, Project Alpha" maxlength="100">
-            </div>
-            <div class="setting-item">
-              <label for="new-calendar-description">Description (optional)</label>
-              <input type="text" id="new-calendar-description" placeholder="Brief description of this calendar" maxlength="500">
-            </div>
-            <div class="setting-item">
-              <label for="new-calendar-location">Location (optional)</label>
-              <input type="text" id="new-calendar-location" placeholder="Default location for events" maxlength="100">
-            </div>
-            <div class="setting-actions" style="margin-top: 16px;">
-              <button class="btn" id="save-new-calendar-btn">Create Calendar</button>
-              <button class="btn btn-secondary" id="cancel-create-calendar-btn">Cancel</button>
-            </div>
-          </div>
-
-          <div id="calendars-list" style="margin-top: 16px;">
-            <!-- Calendars will be loaded here -->
-          </div>
-
-          <span class="inline-status" id="calendar-status"></span>
-        </div>
-      </section>
-
       <!-- Reminder Settings -->
-      <section class="card">
-        <h2>Reminder Settings</h2>
-        
-        <div class="setting-item">
-          <label>Remind me before meetings:</label>
-          <div class="checkbox-group">
-            <label class="checkbox-label">
-              <input type="checkbox" id="remind-10" checked>
-              <span>10 minutes</span>
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="remind-5" checked>
-              <span>5 minutes</span>
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="remind-1" checked>
-              <span>1 minute</span>
-            </label>
-          </div>
-        </div>
-
-        <div class="setting-item">
-          <label for="sync-interval">Sync interval:</label>
-          <select id="sync-interval">
-            <option value="1">Every 1 minute</option>
-            <option value="5">Every 5 minutes</option>
-            <option value="10">Every 10 minutes</option>
-            <option value="15">Every 15 minutes</option>
-            <option value="30">Every 30 minutes</option>
-          </select>
-        </div>
-
-        <div class="setting-item">
-          <label class="checkbox-label">
-            <input type="checkbox" id="sound-enabled" checked>
-            <span>Play alert sound</span>
-          </label>
-        </div>
-
-        <div class="setting-item" id="sound-options" style="margin-left: 28px;">
-          <label for="sound-file">Alert sound:</label>
-          <select id="sound-file">
-            <option value="default.mp3">Default Alert</option>
-            <option value="gentle.mp3">Gentle Chime</option>
-            <option value="urgent.mp3">Urgent Bell</option>
-            <option value="digital.mp3">Digital Beep</option>
-            <option value="custom.mp3">Custom Sound</option>
-          </select>
-        </div>
-
-        <div class="setting-item" id="volume-control" style="margin-left: 28px;">
-          <label for="sound-volume">Volume: <span id="volume-value">70</span>%</label>
-          <input type="range" id="sound-volume" min="0" max="100" value="70" style="width: 100%; max-width: 300px;">
-        </div>
-
-        <div class="setting-item">
-          <label class="checkbox-label">
-            <input type="checkbox" id="preview-notifications-enabled" checked>
-            <span>Show preview notification (30s before full-screen)</span>
-          </label>
-          <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
-            A gentle notification appears before the full-screen alert
-          </p>
-        </div>
-      </section>
-
-      <!-- Test Mode -->
-      <section class="card collapsible collapsed" id="test-section" style="border: 2px solid #ff9800;">
-        <h2 id="test-header" class="collapsible-header">
-          🧪 Test & Debug
+      <section class="card collapsible collapsed" id="reminder-section">
+        <h2 id="reminder-header" class="collapsible-header">
+          ⏰ Reminder Settings
           <span class="toggle-icon">▼</span>
         </h2>
         <div class="collapsible-content">
-          <h3 style="margin-top: 0;">Test Mode</h3>
-          <p class="setting-note">
-            Generate test meetings for development and demo purposes. No real calendar connection needed.
-          </p>
-          <div class="setting-actions">
-            <button class="btn" id="generate-test-btn">Generate Test Events</button>
-            <button class="btn" id="test-reminder-btn" style="background: #ff5722;">Test Reminder Now</button>
+          <div class="setting-item">
+            <label>Remind me before meetings:</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-10" checked>
+                <span>10 minutes</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-5" checked>
+                <span>5 minutes</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-1" checked>
+                <span>1 minute</span>
+              </label>
+            </div>
           </div>
-          <span class="inline-status" id="test-status" aria-live="polite"></span>
-          
-          <h3 style="margin-top: 24px;">Logs & Debugging</h3>
-          <p class="setting-note">
-            Access application logs for troubleshooting. Logs are stored locally and rotated automatically (max 5MB).
-          </p>
-          <div class="setting-actions">
-            <button class="btn" id="open-log-btn" style="background: #607d8b;">Open Log File</button>
+
+          <div class="setting-item">
+            <label for="sync-interval">Sync interval:</label>
+            <select id="sync-interval">
+              <option value="1">Every 1 minute</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="10">Every 10 minutes</option>
+              <option value="15">Every 15 minutes</option>
+              <option value="30">Every 30 minutes</option>
+            </select>
           </div>
-          <span class="inline-status" id="log-path-text" style="font-size: 12px; color: #888;"></span>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="sound-enabled" checked>
+              <span>Play alert sound</span>
+            </label>
+          </div>
+
+          <div class="setting-item" id="sound-options" style="margin-left: 28px;">
+            <label for="sound-file">Alert sound:</label>
+            <select id="sound-file">
+              <option value="default.mp3">Default Alert</option>
+              <option value="gentle.mp3">Gentle Chime</option>
+              <option value="urgent.mp3">Urgent Bell</option>
+              <option value="digital.mp3">Digital Beep</option>
+              <option value="custom.mp3">Custom Sound</option>
+            </select>
+          </div>
+
+          <div class="setting-item" id="volume-control" style="margin-left: 28px;">
+            <label for="sound-volume">Volume: <span id="volume-value">70</span>%</label>
+            <input type="range" id="sound-volume" min="0" max="100" value="70" style="width: 100%; max-width: 300px;">
+          </div>
+
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="preview-notifications-enabled" checked>
+              <span>Show preview notification (30s before full-screen)</span>
+            </label>
+            <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
+              A gentle notification appears before the full-screen alert
+            </p>
+          </div>
         </div>
       </section>
 
       <!-- Appearance -->
-      <section class="card">
-        <h2>🎨 Appearance</h2>
-        
-        <div class="setting-item">
-          <label>Theme:</label>
-          <div class="theme-selector">
-            <button class="theme-option" data-theme="light">
-              <span class="theme-icon">☀️</span>
-              <span>Light</span>
-            </button>
-            <button class="theme-option" data-theme="dark">
-              <span class="theme-icon">🌙</span>
-              <span>Dark</span>
-            </button>
-            <button class="theme-option active" data-theme="system">
-              <span class="theme-icon">💻</span>
-              <span>System</span>
-            </button>
+      <section class="card collapsible collapsed" id="appearance-section">
+        <h2 id="appearance-header" class="collapsible-header">
+          🎨 Appearance
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <div class="setting-item">
+            <label>Theme:</label>
+            <div class="theme-selector">
+              <button class="theme-option" data-theme="light">
+                <span class="theme-icon">☀️</span>
+                <span>Light</span>
+              </button>
+              <button class="theme-option" data-theme="dark">
+                <span class="theme-icon">🌙</span>
+                <span>Dark</span>
+              </button>
+              <button class="theme-option active" data-theme="system">
+                <span class="theme-icon">💻</span>
+                <span>System</span>
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -282,6 +218,83 @@
               <li>Make sure the OAuth consent screen is configured for your project</li>
             </ol>
           </div>
+        </div>
+      </section>
+
+      <!-- Calendar Selection -->
+      <section class="card collapsible collapsed" id="calendar-section">
+        <h2 id="calendar-header" class="collapsible-header">
+          📅 Calendar Selection
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <p class="setting-note">
+            Choose which Google calendars to monitor for meetings. Select multiple calendars to get reminders from all of them. Your Primary calendar is selected by default.
+          </p>
+
+          <div class="setting-actions">
+            <button class="btn btn-secondary" id="refresh-calendars-btn">
+              Refresh Calendars
+            </button>
+            <button class="btn" id="create-calendar-btn">
+              ➕ Create Calendar
+            </button>
+          </div>
+
+          <!-- Create Calendar Form (hidden by default) -->
+          <div id="create-calendar-form" style="display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color);">
+            <h4 style="margin-top: 0; margin-bottom: 16px;">Create New Calendar</h4>
+            <div class="setting-item">
+              <label for="new-calendar-name">Calendar Name *</label>
+              <input type="text" id="new-calendar-name" placeholder="e.g., Work Meetings, Personal, Project Alpha" maxlength="100">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-description">Description (optional)</label>
+              <input type="text" id="new-calendar-description" placeholder="Brief description of this calendar" maxlength="500">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-location">Location (optional)</label>
+              <input type="text" id="new-calendar-location" placeholder="Default location for events" maxlength="100">
+            </div>
+            <div class="setting-actions" style="margin-top: 16px;">
+              <button class="btn" id="save-new-calendar-btn">Create Calendar</button>
+              <button class="btn btn-secondary" id="cancel-create-calendar-btn">Cancel</button>
+            </div>
+          </div>
+
+          <div id="calendars-list" style="margin-top: 16px;">
+            <!-- Calendars will be loaded here -->
+          </div>
+
+          <span class="inline-status" id="calendar-status"></span>
+        </div>
+      </section>
+
+      <!-- Test Mode (LAST SECTION) -->
+      <section class="card collapsible collapsed" id="test-section" style="border: 2px solid #ff9800;">
+        <h2 id="test-header" class="collapsible-header">
+          🧪 Test & Debug
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <h3 style="margin-top: 0;">Test Mode</h3>
+          <p class="setting-note">
+            Generate test meetings for development and demo purposes. No real calendar connection needed.
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="generate-test-btn">Generate Test Events</button>
+            <button class="btn" id="test-reminder-btn" style="background: #ff5722;">Test Reminder Now</button>
+          </div>
+          <span class="inline-status" id="test-status" aria-live="polite"></span>
+          
+          <h3 style="margin-top: 24px;">Logs & Debugging</h3>
+          <p class="setting-note">
+            Access application logs for troubleshooting. Logs are stored locally and rotated automatically (max 5MB).
+          </p>
+          <div class="setting-actions">
+            <button class="btn" id="open-log-btn" style="background: #607d8b;">Open Log File</button>
+          </div>
+          <span class="inline-status" id="log-path-text" style="font-size: 12px; color: #888;"></span>
         </div>
       </section>
     </main>

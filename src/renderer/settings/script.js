@@ -445,10 +445,7 @@ googleBtn.addEventListener('click', async () => {
       updateConnectionStatus();
       await loadCalendars(); // Load calendars after successful connection
       await loadUpcomingEvents();
-      // Auto-expand calendar section to show the newly loaded calendars
-      if (calendarSection) {
-        calendarSection.classList.remove('collapsed');
-      }
+      // Keep calendar section collapsed - user can open it when needed
     } else {
       alert('Failed to connect: ' + (result.error || 'Unknown error'));
     }
@@ -503,15 +500,6 @@ const oauthSection = document.getElementById('oauth-section');
 if (oauthHeader && oauthSection) {
   oauthHeader.addEventListener('click', () => {
     oauthSection.classList.toggle('collapsed');
-  });
-}
-
-// Test mode toggle
-const testHeader = document.getElementById('test-header');
-const testSection = document.getElementById('test-section');
-if (testHeader && testSection) {
-  testHeader.addEventListener('click', () => {
-    testSection.classList.toggle('collapsed');
   });
 }
 
@@ -669,13 +657,8 @@ themeOptions.forEach(btn => {
   });
 });
 
-// Apply theme from command line arguments
-const args = process.argv;
-const themeArg = args.find(arg => arg.startsWith('--theme='));
-if (themeArg) {
-  const theme = themeArg.split('=')[1];
-  document.documentElement.setAttribute('data-theme', theme);
-}
+// Theme will be applied by main process via additionalArguments
+// Note: process.argv is not available in renderer process
 
 // Calendar management
 function updateCalendarBadge(count) {
@@ -752,11 +735,8 @@ async function loadCalendars() {
 
     calendarsList.addEventListener('change', calendarsList._calendarChangeListener);
 
-    // Update calendar count badge and auto-expand if we have calendars
+    // Update calendar count badge (keep section collapsed for cleaner UI)
     updateCalendarBadge(result.calendars.length);
-    if (result.calendars.length > 0 && calendarSection) {
-      calendarSection.classList.remove('collapsed');
-    }
 
     calendarStatus.textContent = `Loaded ${result.calendars.length} calendars`;
     calendarStatus.style.color = '#4caf50';
@@ -898,10 +878,8 @@ async function createNewCalendar() {
 async function loadSettingsWithCalendars() {
   await loadSettings();
 
-  // Always show calendar section (not collapsed) so create calendar is visible
-  if (calendarSection) {
-    calendarSection.classList.remove('collapsed');
-  }
+  // Keep calendar section collapsed by default for cleaner UI
+  // User can open it when needed by clicking the header
 
   // Load calendars if Google is connected
   const googleConnected = settings.googleConnected;
@@ -926,6 +904,42 @@ if (calendarHeader && calendarSection) {
     if (!calendarSection.classList.contains('collapsed') && settings.googleConnected) {
       loadCalendars();
     }
+  });
+}
+
+// Upcoming Meetings section toggle
+const upcomingHeader = document.getElementById('upcoming-header');
+const upcomingSection = document.getElementById('upcoming-section');
+if (upcomingHeader && upcomingSection) {
+  upcomingHeader.addEventListener('click', () => {
+    upcomingSection.classList.toggle('collapsed');
+  });
+}
+
+// Reminder Settings section toggle
+const reminderHeader = document.getElementById('reminder-header');
+const reminderSection = document.getElementById('reminder-section');
+if (reminderHeader && reminderSection) {
+  reminderHeader.addEventListener('click', () => {
+    reminderSection.classList.toggle('collapsed');
+  });
+}
+
+// Appearance section toggle
+const appearanceHeader = document.getElementById('appearance-header');
+const appearanceSection = document.getElementById('appearance-section');
+if (appearanceHeader && appearanceSection) {
+  appearanceHeader.addEventListener('click', () => {
+    appearanceSection.classList.toggle('collapsed');
+  });
+}
+
+// Test & Debug section toggle
+const testHeader = document.getElementById('test-header');
+const testSection = document.getElementById('test-section');
+if (testHeader && testSection) {
+  testHeader.addEventListener('click', () => {
+    testSection.classList.toggle('collapsed');
   });
 }
 
