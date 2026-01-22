@@ -445,10 +445,7 @@ googleBtn.addEventListener('click', async () => {
       updateConnectionStatus();
       await loadCalendars(); // Load calendars after successful connection
       await loadUpcomingEvents();
-      // Auto-expand calendar section to show the newly loaded calendars
-      if (calendarSection) {
-        calendarSection.classList.remove('collapsed');
-      }
+      // Keep calendar section collapsed - user can open it when needed
     } else {
       alert('Failed to connect: ' + (result.error || 'Unknown error'));
     }
@@ -738,11 +735,8 @@ async function loadCalendars() {
 
     calendarsList.addEventListener('change', calendarsList._calendarChangeListener);
 
-    // Update calendar count badge and auto-expand if we have calendars
+    // Update calendar count badge (keep section collapsed for cleaner UI)
     updateCalendarBadge(result.calendars.length);
-    if (result.calendars.length > 0 && calendarSection) {
-      calendarSection.classList.remove('collapsed');
-    }
 
     calendarStatus.textContent = `Loaded ${result.calendars.length} calendars`;
     calendarStatus.style.color = '#4caf50';
@@ -884,10 +878,8 @@ async function createNewCalendar() {
 async function loadSettingsWithCalendars() {
   await loadSettings();
 
-  // Always show calendar section (not collapsed) so create calendar is visible
-  if (calendarSection) {
-    calendarSection.classList.remove('collapsed');
-  }
+  // Keep calendar section collapsed by default for cleaner UI
+  // User can open it when needed by clicking the header
 
   // Load calendars if Google is connected
   const googleConnected = settings.googleConnected;
