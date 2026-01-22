@@ -915,6 +915,15 @@ if (calendarHeader && calendarSection) {
   });
 }
 
+// Upcoming Meetings section toggle
+const upcomingHeader = document.getElementById('upcoming-header');
+const upcomingSection = document.getElementById('upcoming-section');
+if (upcomingHeader && upcomingSection) {
+  upcomingHeader.addEventListener('click', () => {
+    upcomingSection.classList.toggle('collapsed');
+  });
+}
+
 // Reminder Settings section toggle
 const reminderHeader = document.getElementById('reminder-header');
 const reminderSection = document.getElementById('reminder-section');
