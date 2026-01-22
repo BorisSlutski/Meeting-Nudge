@@ -84,7 +84,8 @@ const settingsStore = new Store({
     reminderTimes: [10, 5, 1], // minutes before meeting
     syncInterval: 5, // minutes
     soundEnabled: true,
-    soundFile: 'alert.mp3',
+    soundFile: 'default.mp3', // Changed from alert.mp3
+    soundVolume: 70, // 0-100
     googleConnected: false,
     pausedUntil: null,
     theme: 'dark',

@@ -45,10 +45,19 @@
           <span>I'm on it!</span>
         </button>
         
-        <button class="btn btn-snooze" id="snooze-btn">
-          <span class="btn-icon">⏰</span>
-          <span>Snooze 5 min</span>
-        </button>
+        <div class="snooze-container">
+          <button class="btn btn-snooze" id="snooze-btn">
+            <span class="btn-icon">⏰</span>
+            <span id="snooze-text">Snooze</span>
+          </button>
+          <button class="btn btn-snooze-menu" id="snooze-menu-btn">▼</button>
+          <div class="snooze-options" id="snooze-options">
+            <button class="snooze-option" data-minutes="2">2 minutes</button>
+            <button class="snooze-option" data-minutes="5">5 minutes</button>
+            <button class="snooze-option" data-minutes="10">10 minutes</button>
+            <button class="snooze-option" data-minutes="15">15 minutes</button>
+          </div>
+        </div>
       </div>
       
       <div class="countdown" id="countdown">

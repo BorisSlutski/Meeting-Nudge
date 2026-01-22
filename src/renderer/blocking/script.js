@@ -1,6 +1,7 @@
 // Current event data
 let currentEvent = null;
 let countdownInterval = null;
+let lastSnoozeMinutes = 5; // Default snooze duration
 
 // DOM elements
 const meetingTitle = document.getElementById('meeting-title');
@@ -15,6 +16,9 @@ const joinBtn = document.getElementById('join-btn');
 const joinIcon = document.getElementById('join-icon');
 const acknowledgeBtn = document.getElementById('acknowledge-btn');
 const snoozeBtn = document.getElementById('snooze-btn');
+const snoozeText = document.getElementById('snooze-text');
+const snoozeMenuBtn = document.getElementById('snooze-menu-btn');
+const snoozeOptions = document.getElementById('snooze-options');
 const countdownTimer = document.getElementById('countdown-timer');
 const alertSound = document.getElementById('alert-sound');
 const container = document.querySelector('.container');
@@ -103,6 +107,9 @@ function showEvent(event) {
   } else {
     joinBtn.style.display = 'none';
   }
+
+  // Update snooze button text with last selected duration
+  snoozeText.textContent = `Snooze ${lastSnoozeMinutes} min`;
   
   // Start countdown
   updateCountdown();
@@ -159,14 +166,49 @@ acknowledgeBtn.addEventListener('click', () => {
   window.electronAPI.acknowledgeMeeting();
 });
 
+// Snooze with last selected duration
 snoozeBtn.addEventListener('click', () => {
   stopSound();
   clearInterval(countdownInterval);
   // Pass event data so snooze can reschedule properly
   window.electronAPI.snoozeMeeting({
-    minutes: 5,
+    minutes: lastSnoozeMinutes,
     event: currentEvent
   });
+});
+
+// Toggle snooze options menu
+snoozeMenuBtn.addEventListener('click', (e) => {
+  e.stopPropagation();
+  snoozeOptions.classList.toggle('show');
+});
+
+// Handle snooze option selection
+document.querySelectorAll('.snooze-option').forEach(option => {
+  option.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const minutes = parseInt(option.getAttribute('data-minutes'), 10);
+    lastSnoozeMinutes = minutes;
+    
+    // Update button text
+    snoozeText.textContent = `Snooze ${minutes} min`;
+    
+    // Hide menu
+    snoozeOptions.classList.remove('show');
+    
+    // Execute snooze
+    stopSound();
+    clearInterval(countdownInterval);
+    window.electronAPI.snoozeMeeting({
+      minutes: minutes,
+      event: currentEvent
+    });
+  });
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', () => {
+  snoozeOptions.classList.remove('show');
 });
 
 // Listen for events from main process
