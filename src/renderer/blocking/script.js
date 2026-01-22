@@ -162,7 +162,11 @@ acknowledgeBtn.addEventListener('click', () => {
 snoozeBtn.addEventListener('click', () => {
   stopSound();
   clearInterval(countdownInterval);
-  window.electronAPI.snoozeMeeting(5);
+  // Pass event data so snooze can reschedule properly
+  window.electronAPI.snoozeMeeting({
+    minutes: 5,
+    event: currentEvent
+  });
 });
 
 // Listen for events from main process

@@ -15,7 +15,7 @@
   "author": "Boris",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^39.2.7",
+    "electron": "^38.7.2",
     "electron-builder": "^24.9.1"
   },
   "dependencies": {

@@ -5,6 +5,7 @@ const { TrayManager } = require('./tray');
 const { Scheduler } = require('./scheduler');
 const { GoogleCalendar } = require('./calendar/google');
 const { SecureStore } = require('./store');
+const { isSafeExternalUrl, MEETING_HOST_ALLOWLIST, EXTERNAL_HOST_ALLOWLIST } = require('./utils/url-validator');
 
 // Set app name immediately (before app is ready)
 app.setName('Meeting Nudge');
@@ -46,71 +47,35 @@ function buildReminderPayload(event) {
   };
 }
 
-const MEETING_HOST_ALLOWLIST = [
-  'zoom.us',
-  'meet.google.com',
-  'teams.microsoft.com',
-  'webex.com',
-  'gotomeeting.com',
-  'gotomeet.com',
-  'bluejeans.com',
-  'slack.com',
-  'discord.gg',
-  'discord.com',
-  'whereby.com',
-  'around.co',
-  'meet.jit.si',
-  'chime.aws',
-  'ringcentral.com'
-];
-
-const EXTERNAL_HOST_ALLOWLIST = [
-  'console.cloud.google.com',
-  'cloud.google.com',
-  'developers.google.com',
-  'accounts.google.com'
-];
-
-function isAllowedHost(hostname, allowlist) {
-  const host = String(hostname || '').toLowerCase();
-  return allowlist.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
-}
-
-function isSafeExternalUrl(url, allowlist) {
-  if (typeof url !== 'string') return false;
-  try {
-    const parsed = new URL(url);
-    if (!['https:'].includes(parsed.protocol)) {
-      return false;
-    }
-    if (Array.isArray(allowlist) && allowlist.length > 0) {
-      return isAllowedHost(parsed.hostname, allowlist);
-    }
-    return true;
-  } catch (error) {
-    return false;
-  }
-}
-
 function sanitizeSettings(settings) {
   const sanitized = {};
 
+  // Validate reminder times
   if (Array.isArray(settings?.reminderTimes)) {
     const times = settings.reminderTimes
-      .map((value) => Number.parseInt(value, 10))
-      .filter((value) => Number.isFinite(value) && value > 0 && value <= 120);
+      .map((value) => {
+        const num = Number.parseInt(value, 10);
+        // Reject NaN, negative, zero, Infinity, and too-large values
+        return (!isNaN(num) && isFinite(num) && num > 0 && num <= 120) ? num : null;
+      })
+      .filter((value) => value !== null);
+    
     if (times.length > 0) {
+      // Remove duplicates and sort descending
       sanitized.reminderTimes = [...new Set(times)].sort((a, b) => b - a);
     }
   }
 
+  // Validate sync interval
   if (settings?.syncInterval !== undefined) {
     const interval = Number.parseInt(settings.syncInterval, 10);
-    if (Number.isFinite(interval) && interval > 0 && interval <= 60) {
+    // Must be positive, finite, reasonable range
+    if (!isNaN(interval) && isFinite(interval) && interval > 0 && interval <= 60) {
       sanitized.syncInterval = interval;
     }
   }
 
+  // Validate sound enabled (must be boolean)
   if (typeof settings?.soundEnabled === 'boolean') {
     sanitized.soundEnabled = settings.soundEnabled;
   }
@@ -425,10 +390,19 @@ ipcMain.handle('acknowledge-meeting', () => {
   return { success: true };
 });
 
-ipcMain.handle('snooze-meeting', (event, minutes = 5) => {
+ipcMain.handle('snooze-meeting', (event, data) => {
+  const minutes = data?.minutes || 5;
+  const meetingEvent = data?.event;
+  
   closeBlockingWindow();
-  // The scheduler will handle the next reminder
-  return { success: true };
+  
+  // Schedule snooze reminder if we have event data
+  if (scheduler && meetingEvent) {
+    const success = scheduler.snooze(meetingEvent, minutes);
+    return { success, snoozedFor: minutes };
+  }
+  
+  return { success: false, error: 'No event data provided' };
 });
 
 ipcMain.handle('join-meeting', (event, url) => {

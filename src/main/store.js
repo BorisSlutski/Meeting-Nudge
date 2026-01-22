@@ -11,9 +11,15 @@ class SecureStore {
    * Store a token securely
    * @param {string} key - Token identifier (e.g., 'google-refresh-token')
    * @param {string} value - Token value
+   * @throws {Error} If keychain access fails
    */
   static async setToken(key, value) {
-    await keytar.setPassword(SERVICE_NAME, key, value);
+    try {
+      await keytar.setPassword(SERVICE_NAME, key, value);
+    } catch (error) {
+      console.error(`Failed to store token '${key}':`, error.message);
+      throw new Error(`Keychain access denied or unavailable: ${error.message}`);
+    }
   }
 
   /**
@@ -22,24 +28,49 @@ class SecureStore {
    * @returns {Promise<string|null>} Token value or null
    */
   static async getToken(key) {
-    return await keytar.getPassword(SERVICE_NAME, key);
+    try {
+      return await keytar.getPassword(SERVICE_NAME, key);
+    } catch (error) {
+      console.error(`Failed to retrieve token '${key}':`, error.message);
+      return null; // Return null on error to allow graceful degradation
+    }
   }
 
   /**
    * Delete a token
    * @param {string} key - Token identifier
+   * @returns {Promise<boolean>} True if successful
    */
   static async deleteToken(key) {
-    await keytar.deletePassword(SERVICE_NAME, key);
+    try {
+      const result = await keytar.deletePassword(SERVICE_NAME, key);
+      return result;
+    } catch (error) {
+      console.error(`Failed to delete token '${key}':`, error.message);
+      return false;
+    }
   }
 
   /**
    * Delete all tokens for this app
+   * @returns {Promise<number>} Number of tokens deleted
    */
   static async clearAllTokens() {
-    const credentials = await keytar.findCredentials(SERVICE_NAME);
-    for (const cred of credentials) {
-      await keytar.deletePassword(SERVICE_NAME, cred.account);
+    try {
+      const credentials = await keytar.findCredentials(SERVICE_NAME);
+      let deletedCount = 0;
+      for (const cred of credentials) {
+        try {
+          await keytar.deletePassword(SERVICE_NAME, cred.account);
+          deletedCount++;
+        } catch (error) {
+          console.error(`Failed to delete token '${cred.account}':`, error.message);
+        }
+      }
+      return deletedCount;
+    } catch (error) {
+      console.error('Failed to clear all tokens:', error.message);
+      return 0;
     }
   }
 }
