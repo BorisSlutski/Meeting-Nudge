@@ -24,6 +24,11 @@ const syncStatus = document.getElementById('sync-status');
 // Theme elements
 const themeOptions = document.querySelectorAll('.theme-option');
 
+// Calendar elements
+const refreshCalendarsBtn = document.getElementById('refresh-calendars-btn');
+const calendarsList = document.getElementById('calendars-list');
+const calendarStatus = document.getElementById('calendar-status');
+
 // Current settings
 let settings = {};
 let pauseUpdateInterval = null;
@@ -431,6 +436,7 @@ googleBtn.addEventListener('click', async () => {
     if (result.success) {
       settings.googleConnected = true;
       updateConnectionStatus();
+      await loadCalendars(); // Load calendars after successful connection
       await loadUpcomingEvents();
     } else {
       alert('Failed to connect: ' + (result.error || 'Unknown error'));
@@ -658,6 +664,127 @@ const themeArg = args.find(arg => arg.startsWith('--theme='));
 if (themeArg) {
   const theme = themeArg.split('=')[1];
   document.documentElement.setAttribute('data-theme', theme);
+}
+
+// Calendar management
+async function loadCalendars() {
+  if (!calendarsList) return;
+
+  try {
+    calendarStatus.textContent = 'Loading calendars...';
+    const result = await window.electronAPI.listGoogleCalendars();
+
+    if (!result.success) {
+      calendarStatus.textContent = `Error: ${result.error}`;
+      calendarStatus.style.color = '#f44336';
+      calendarsList.innerHTML = '<p style="color: var(--text-secondary);">Unable to load calendars. Please check your connection.</p>';
+      return;
+    }
+
+    if (result.calendars.length === 0) {
+      calendarsList.innerHTML = '<p style="color: var(--text-secondary);">No calendars found.</p>';
+      calendarStatus.textContent = '';
+      return;
+    }
+
+    // Render calendars
+    calendarsList.innerHTML = result.calendars.map(cal => `
+      <label class="calendar-item">
+        <input type="checkbox"
+               class="calendar-checkbox"
+               data-calendar-id="${cal.id}"
+               ${cal.selected ? 'checked' : ''}>
+        <div class="calendar-info">
+          <div class="calendar-color" style="background-color: ${cal.backgroundColor};"></div>
+          <div class="calendar-details">
+            <div class="calendar-name">${cal.summary}</div>
+            <div class="calendar-access">${cal.accessRole}${cal.primary ? '<span class="primary-badge">Primary</span>' : ''}</div>
+          </div>
+        </div>
+      </label>
+    `).join('');
+
+    // Add change listeners
+    document.querySelectorAll('.calendar-checkbox').forEach(checkbox => {
+      checkbox.addEventListener('change', saveSelectedCalendars);
+    });
+
+    calendarStatus.textContent = `Loaded ${result.calendars.length} calendars`;
+    calendarStatus.style.color = '#4caf50';
+
+    setTimeout(() => {
+      calendarStatus.textContent = '';
+    }, 3000);
+
+  } catch (error) {
+    console.error('Failed to load calendars:', error);
+    calendarStatus.textContent = 'Failed to load calendars';
+    calendarStatus.style.color = '#f44336';
+  }
+}
+
+async function saveSelectedCalendars() {
+  try {
+    const selectedIds = Array.from(document.querySelectorAll('.calendar-checkbox:checked'))
+      .map(cb => cb.dataset.calendarId);
+
+    calendarStatus.textContent = 'Saving...';
+
+    const result = await window.electronAPI.saveSelectedCalendars(selectedIds);
+
+    if (result.success) {
+      calendarStatus.textContent = `✓ Saved ${selectedIds.length} calendar(s)`;
+      calendarStatus.style.color = '#4caf50';
+
+      // Refresh events display
+      await loadUpcomingEvents();
+    } else {
+      calendarStatus.textContent = `Error: ${result.error}`;
+      calendarStatus.style.color = '#f44336';
+    }
+
+    setTimeout(() => {
+      calendarStatus.textContent = '';
+    }, 3000);
+
+  } catch (error) {
+    console.error('Failed to save calendars:', error);
+    calendarStatus.textContent = 'Failed to save selection';
+    calendarStatus.style.color = '#f44336';
+  }
+}
+
+// Calendar event listeners
+if (refreshCalendarsBtn) {
+  refreshCalendarsBtn.addEventListener('click', loadCalendars);
+}
+
+// Load calendars on settings load (if Google is connected)
+async function loadSettingsWithCalendars() {
+  await loadSettings();
+
+  // Load calendars if Google is connected
+  const googleConnected = settings.googleConnected;
+  if (googleConnected) {
+    await loadCalendars();
+  } else {
+    calendarsList.innerHTML = '<p style="color: var(--text-secondary);">Please connect your Google Calendar first.</p>';
+  }
+}
+
+// Calendar section toggle
+const calendarSection = document.getElementById('calendar-section');
+const calendarHeader = document.querySelector('#calendar-section .collapsible-header');
+
+if (calendarHeader && calendarSection) {
+  calendarHeader.addEventListener('click', () => {
+    calendarSection.classList.toggle('collapsed');
+
+    // Load calendars when section is opened and Google is connected
+    if (!calendarSection.classList.contains('collapsed') && settings.googleConnected) {
+      loadCalendars();
+    }
+  });
 }
 
 // Initialize

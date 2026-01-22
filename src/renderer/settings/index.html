@@ -60,6 +60,31 @@
         </div>
       </section>
 
+      <!-- Calendar Selection -->
+      <section class="card collapsible" id="calendar-section">
+        <h2 class="collapsible-header">
+          📅 Calendar Selection
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <p class="setting-note">
+            Choose which Google calendars to monitor for meetings. Select multiple calendars to get reminders from all of them.
+          </p>
+
+          <div class="setting-actions">
+            <button class="btn btn-secondary" id="refresh-calendars-btn">
+              Refresh Calendars
+            </button>
+          </div>
+
+          <div id="calendars-list" style="margin-top: 16px;">
+            <!-- Calendars will be loaded here -->
+          </div>
+
+          <span class="inline-status" id="calendar-status"></span>
+        </div>
+      </section>
+
       <!-- Reminder Settings -->
       <section class="card">
         <h2>Reminder Settings</h2>

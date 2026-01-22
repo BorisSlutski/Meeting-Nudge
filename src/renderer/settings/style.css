@@ -458,6 +458,63 @@ footer {
   background: #bbb;
 }
 
+/* Calendar selection */
+.calendar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: var(--input-bg);
+  transition: background 0.2s ease;
+}
+
+.calendar-item:hover {
+  background: var(--hover-bg);
+}
+
+.calendar-info {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calendar-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.calendar-details {
+  flex: 1;
+}
+
+.calendar-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+
+.calendar-access {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+.primary-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 500;
+  margin-left: 8px;
+}
+
 /* Theme selector */
 .theme-selector {
   display: flex;

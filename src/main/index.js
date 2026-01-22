@@ -231,9 +231,11 @@ async function syncCalendars(attemptNumber = 0) {
     // Sync Google Calendar
     if (store.get('googleConnected') && googleCalendar) {
       try {
-        const googleEvents = await googleCalendar.getUpcomingEvents();
+        // Get selected calendars, default to primary if none selected
+        const selectedCalendars = store.get('selectedCalendars') || ['primary'];
+        const googleEvents = await googleCalendar.getUpcomingEvents(selectedCalendars);
         allEvents = allEvents.concat(googleEvents);
-        console.log(`Fetched ${googleEvents.length} events from Google Calendar`);
+        console.log(`Fetched ${googleEvents.length} events from ${selectedCalendars.length} Google calendars`);
       } catch (error) {
         console.error('Google Calendar sync error:', error.message);
         
@@ -466,6 +468,43 @@ ipcMain.handle('save-settings', (event, settings) => {
 
 ipcMain.handle('get-upcoming-events', () => {
   return allEvents.slice(0, 10);
+});
+
+// Calendar management
+ipcMain.handle('list-google-calendars', async () => {
+  if (!googleCalendar) {
+    return { success: false, error: 'Google Calendar not initialized' };
+  }
+
+  try {
+    const calendars = await googleCalendar.listCalendars();
+
+    // Mark selected calendars based on stored preferences
+    const selectedCalendars = store.get('selectedCalendars') || ['primary'];
+    calendars.forEach(cal => {
+      cal.selected = selectedCalendars.includes(cal.id);
+    });
+
+    return { success: true, calendars };
+  } catch (error) {
+    console.error('Failed to list calendars:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('save-selected-calendars', async (event, calendarIds) => {
+  try {
+    store.set('selectedCalendars', calendarIds);
+    console.log('Saved selected calendars:', calendarIds);
+
+    // Re-sync with new calendar selection
+    await syncCalendars();
+
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to save selected calendars:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 ipcMain.handle('connect-google', async () => {

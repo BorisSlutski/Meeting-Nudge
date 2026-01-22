@@ -250,10 +250,36 @@ class GoogleCalendar {
   }
 
   /**
-   * Get upcoming events
-   * @returns {Promise<Array>} Array of events
+   * List all user's calendars
+   * @returns {Promise<Array>} Array of calendars with id, summary, primary, etc.
    */
-  async getUpcomingEvents() {
+  async listCalendars() {
+    if (!this.oauth2Client || !this.calendar) {
+      await this.initializeClient();
+    }
+
+    try {
+      const response = await this.calendar.calendarList.list();
+      return response.data.items.map(cal => ({
+        id: cal.id,
+        summary: cal.summary || 'Untitled Calendar',
+        primary: cal.primary || false,
+        backgroundColor: cal.backgroundColor || '#3788d8',
+        accessRole: cal.accessRole || 'reader',
+        selected: false // Will be set by UI based on user preferences
+      }));
+    } catch (error) {
+      console.error('Failed to list calendars:', error);
+      throw new Error(`Failed to list calendars: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get upcoming events from multiple calendars
+   * @param {Array<string>} calendarIds - Array of calendar IDs to fetch from (defaults to ['primary'])
+   * @returns {Promise<Array>} Array of events from all specified calendars
+   */
+  async getUpcomingEvents(calendarIds = ['primary']) {
     if (!this.oauth2Client || !this.calendar) {
       // Try to restore from saved token
       const token = await SecureStore.getToken(TOKEN_KEY);
@@ -275,38 +301,63 @@ class GoogleCalendar {
       const now = new Date();
       const oneWeekLater = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-      const response = await this.calendar.events.list({
-        calendarId: 'primary',
-        timeMin: now.toISOString(),
-        timeMax: oneWeekLater.toISOString(),
-        singleEvents: true,
-        orderBy: 'startTime',
-        maxResults: 100
-      });
+      const allEvents = [];
 
-      const events = response.data.items || [];
-      
-      return events.map(event => {
-        const conferenceInfo = parseConferenceLink({
-          description: event.description,
-          location: event.location,
-          conferenceData: event.conferenceData
-        });
+      // Fetch events from each selected calendar
+      for (const calendarId of calendarIds) {
+        try {
+          console.log(`Fetching events from calendar: ${calendarId}`);
 
-        return {
-          id: `google-${event.id}`,
-          title: event.summary || 'Untitled Event',
-          start: event.start.dateTime || event.start.date,
-          end: event.end.dateTime || event.end.date,
-          location: event.location || '',
-          description: event.description || '',
-          source: 'google',
-          conferenceLink: conferenceInfo?.url || null,
-          conferenceName: conferenceInfo?.name || null,
-          conferenceIcon: conferenceInfo?.icon || null,
-          htmlLink: event.htmlLink
-        };
-      });
+          const response = await this.calendar.events.list({
+            calendarId: calendarId,
+            timeMin: now.toISOString(),
+            timeMax: oneWeekLater.toISOString(),
+            singleEvents: true,
+            orderBy: 'startTime',
+            maxResults: 100
+          });
+
+          const events = response.data.items || [];
+
+          // Map events with calendar information
+          const mappedEvents = events.map(event => {
+            const conferenceInfo = parseConferenceLink({
+              description: event.description,
+              location: event.location,
+              conferenceData: event.conferenceData
+            });
+
+            return {
+              id: `google-${calendarId}-${event.id}`,
+              title: event.summary || 'Untitled Event',
+              start: event.start.dateTime || event.start.date,
+              end: event.end.dateTime || event.end.date,
+              location: event.location || '',
+              description: event.description || '',
+              source: 'google',
+              calendarId: calendarId,
+              calendarName: calendarId === 'primary' ? 'Primary' : calendarId,
+              conferenceLink: conferenceInfo?.link || null,
+              conferenceName: conferenceInfo?.name || null,
+              conferenceIcon: conferenceInfo?.icon || null,
+              reminderMinutes: 10 // Default, will be overridden by scheduler
+            };
+          });
+
+          allEvents.push(...mappedEvents);
+          console.log(`Fetched ${mappedEvents.length} events from ${calendarId}`);
+
+        } catch (calendarError) {
+          console.error(`Failed to fetch events from calendar ${calendarId}:`, calendarError.message);
+          // Continue with other calendars even if one fails
+        }
+      }
+
+      // Sort all events by start time
+      allEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
+
+      console.log(`Total events from ${calendarIds.length} calendars: ${allEvents.length}`);
+      return allEvents;
     } catch (error) {
       console.error('Error fetching Google Calendar events:', error);
       
