@@ -8,6 +8,7 @@ class Scheduler {
     this.store = store;
     this.onReminder = onReminder;
     this.scheduledJobs = new Map();
+    this.snoozedJobs = new Map(); // Track snoozed reminders
     this.events = [];
   }
 
@@ -63,6 +64,8 @@ class Scheduler {
         if (job) {
           this.scheduledJobs.set(jobId, job);
           console.log(`Scheduled reminder: ${event.title} at ${reminderTime.toLocaleString()} (${minutesBefore} min before)`);
+        } else {
+          console.error(`Failed to schedule reminder for ${event.title} at ${reminderTime.toLocaleString()}`);
         }
       }
     }
@@ -93,6 +96,48 @@ class Scheduler {
   }
 
   /**
+   * Snooze a meeting reminder
+   * @param {Object} event - Event to snooze
+   * @param {number} minutes - Minutes to snooze (default: 5)
+   */
+  snooze(event, minutes = 5) {
+    if (!event || !event.id) {
+      console.error('Cannot snooze: invalid event');
+      return false;
+    }
+
+    const snoozeId = `snooze-${event.id}`;
+    
+    // Cancel any existing snooze for this event
+    const existingJob = this.snoozedJobs.get(snoozeId);
+    if (existingJob) {
+      existingJob.cancel();
+      this.snoozedJobs.delete(snoozeId);
+    }
+
+    // Schedule a new reminder
+    const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
+    const job = schedule.scheduleJob(snoozeTime, () => {
+      console.log(`Snooze expired for: ${event.title}`);
+      this.snoozedJobs.delete(snoozeId);
+      this.onReminder({
+        ...event,
+        reminderMinutes: 0,
+        snoozed: true
+      });
+    });
+
+    if (job) {
+      this.snoozedJobs.set(snoozeId, job);
+      console.log(`Snoozed: ${event.title} for ${minutes} minutes until ${snoozeTime.toLocaleString()}`);
+      return true;
+    } else {
+      console.error(`Failed to schedule snooze for ${event.title}`);
+      return false;
+    }
+  }
+
+  /**
    * Cancel all scheduled jobs
    */
   cancelAll() {
@@ -100,6 +145,11 @@ class Scheduler {
       job.cancel();
     }
     this.scheduledJobs.clear();
+    
+    for (const job of this.snoozedJobs.values()) {
+      job.cancel();
+    }
+    this.snoozedJobs.clear();
   }
 }
 

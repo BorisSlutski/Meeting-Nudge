@@ -1,28 +1,6 @@
 const { Tray, Menu, nativeImage, app, shell } = require('electron');
 const path = require('path');
-
-const MEETING_HOST_ALLOWLIST = [
-  'zoom.us',
-  'meet.google.com',
-  'teams.microsoft.com',
-  'webex.com',
-  'gotomeeting.com',
-  'gotomeet.com',
-  'bluejeans.com',
-  'slack.com',
-  'discord.gg',
-  'discord.com',
-  'whereby.com',
-  'around.co',
-  'meet.jit.si',
-  'chime.aws',
-  'ringcentral.com'
-];
-
-function isAllowedHost(hostname, allowlist) {
-  const host = String(hostname || '').toLowerCase();
-  return allowlist.some((allowed) => host === allowed || host.endsWith(`.${allowed}`));
-}
+const { isSafeExternalUrl, MEETING_HOST_ALLOWLIST } = require('./utils/url-validator');
 
 /**
  * System tray manager
@@ -173,13 +151,7 @@ class TrayManager {
   }
 
   isSafeMeetingUrl(url) {
-    if (typeof url !== 'string') return false;
-    try {
-      const parsed = new URL(url);
-      return parsed.protocol === 'https:' && isAllowedHost(parsed.hostname, MEETING_HOST_ALLOWLIST);
-    } catch (error) {
-      return false;
-    }
+    return isSafeExternalUrl(url, MEETING_HOST_ALLOWLIST);
   }
 
   /**

@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Blocking window actions
   acknowledgeMeeting: () => ipcRenderer.invoke('acknowledge-meeting'),
-  snoozeMeeting: (minutes) => ipcRenderer.invoke('snooze-meeting', minutes),
+  snoozeMeeting: (data) => ipcRenderer.invoke('snooze-meeting', data),
   joinMeeting: (url) => ipcRenderer.invoke('join-meeting', url),
 
   // External links
