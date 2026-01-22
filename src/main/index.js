@@ -494,9 +494,7 @@ ipcMain.handle('list-google-calendars', async () => {
 
 ipcMain.handle('save-selected-calendars', async (event, calendarIds) => {
   try {
-    console.log('Main process: Saving selected calendars:', calendarIds);
     store.set('selectedCalendars', calendarIds);
-    console.log('Saved selected calendars:', calendarIds);
 
     // Re-sync with new calendar selection
     await syncCalendars();
