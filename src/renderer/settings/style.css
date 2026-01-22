@@ -372,6 +372,19 @@ input[type="password"]:focus {
   margin-left: 12px;
 }
 
+.calendar-count-badge {
+  background: var(--accent);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-left: 12px;
+  display: inline-block;
+  min-width: 20px;
+  text-align: center;
+}
+
 .toggle-icon {
   margin-left: auto;
   transition: transform 0.2s;

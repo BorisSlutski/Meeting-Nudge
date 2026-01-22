@@ -438,6 +438,10 @@ googleBtn.addEventListener('click', async () => {
       updateConnectionStatus();
       await loadCalendars(); // Load calendars after successful connection
       await loadUpcomingEvents();
+      // Auto-expand calendar section to show the newly loaded calendars
+      if (calendarSection) {
+        calendarSection.classList.remove('collapsed');
+      }
     } else {
       alert('Failed to connect: ' + (result.error || 'Unknown error'));
     }
@@ -667,6 +671,26 @@ if (themeArg) {
 }
 
 // Calendar management
+function updateCalendarBadge(count) {
+  const calendarHeader = document.querySelector('#calendar-section .collapsible-header h2');
+  if (!calendarHeader) return;
+
+  // Remove existing badge
+  const existingBadge = calendarHeader.querySelector('.calendar-count-badge');
+  if (existingBadge) {
+    existingBadge.remove();
+  }
+
+  // Add new badge if we have calendars
+  if (count > 0) {
+    const badge = document.createElement('span');
+    badge.className = 'calendar-count-badge';
+    badge.textContent = count;
+    badge.title = `${count} calendar${count !== 1 ? 's' : ''} available`;
+    calendarHeader.appendChild(badge);
+  }
+}
+
 async function loadCalendars() {
   if (!calendarsList) return;
 
@@ -708,6 +732,12 @@ async function loadCalendars() {
     document.querySelectorAll('.calendar-checkbox').forEach(checkbox => {
       checkbox.addEventListener('change', saveSelectedCalendars);
     });
+
+    // Update calendar count badge and auto-expand if we have calendars
+    updateCalendarBadge(result.calendars.length);
+    if (result.calendars.length > 0 && calendarSection) {
+      calendarSection.classList.remove('collapsed');
+    }
 
     calendarStatus.textContent = `Loaded ${result.calendars.length} calendars`;
     calendarStatus.style.color = '#4caf50';
@@ -769,6 +799,8 @@ async function loadSettingsWithCalendars() {
     await loadCalendars();
   } else {
     calendarsList.innerHTML = '<p style="color: var(--text-secondary);">Please connect your Google Calendar first.</p>';
+    // Clear any existing badge
+    updateCalendarBadge(0);
   }
 }
 
