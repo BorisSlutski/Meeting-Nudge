@@ -176,19 +176,10 @@ function attachEventListeners() {
 
 // Initialize when DOM is ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOMContentLoaded fired');
-    initializeDOMElements();
-  });
+  document.addEventListener('DOMContentLoaded', initializeDOMElements);
 } else {
-  console.log('DOM already ready, initializing immediately');
   initializeDOMElements();
 }
-
-// Add a test - log every 2 seconds to prove JavaScript is running
-setInterval(() => {
-  console.log('🟢 Blocking window JS is alive...');
-}, 2000);
 
 /**
  * Format time for display

@@ -194,9 +194,6 @@ function createBlockingWindow(event) {
 
   blockingWindow.loadFile(path.join(__dirname, '..', 'renderer', 'blocking', 'index.html'));
 
-  // OPEN DEVTOOLS TO SEE RENDERER LOGS
-  blockingWindow.webContents.openDevTools({ mode: 'detach' });
-
   blockingWindow.webContents.on('did-finish-load', () => {
     blockingWindow.webContents.send('show-event', buildReminderPayload(event));
     // Ensure window is visible and focused
@@ -205,7 +202,7 @@ function createBlockingWindow(event) {
     blockingWindow.moveTop();
     
     logger.info('Blocking window loaded and displayed');
-    console.log('✅ Blocking window is now visible with DevTools open');
+    console.log('✅ Blocking window is now visible');
   });
 
   // Block escape key
