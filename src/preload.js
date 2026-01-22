@@ -33,6 +33,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getTheme: () => ipcRenderer.invoke('get-theme'),
   setTheme: (theme) => ipcRenderer.invoke('set-theme', theme),
 
+  // Test mode
+  generateTestEvents: () => ipcRenderer.invoke('generate-test-events'),
+  testReminderNow: () => ipcRenderer.invoke('test-reminder-now'),
+  getLogPath: () => ipcRenderer.invoke('get-log-path'),
+  openLogFile: () => ipcRenderer.invoke('open-log-file'),
+
   // Event listeners for blocking window
   onShowEvent: (callback) => {
     ipcRenderer.on('show-event', (event, data) => callback(data));

@@ -679,7 +679,7 @@ if (themeArg) {
 
 // Calendar management
 function updateCalendarBadge(count) {
-  const calendarHeader = document.querySelector('#calendar-section .collapsible-header h2');
+  const calendarHeader = document.getElementById('calendar-header');
   if (!calendarHeader) return;
 
   // Remove existing badge
@@ -916,7 +916,7 @@ async function loadSettingsWithCalendars() {
 
 // Calendar section toggle
 const calendarSection = document.getElementById('calendar-section');
-const calendarHeader = document.querySelector('#calendar-section .collapsible-header');
+const calendarHeader = document.getElementById('calendar-header');
 
 if (calendarHeader && calendarSection) {
   calendarHeader.addEventListener('click', () => {
