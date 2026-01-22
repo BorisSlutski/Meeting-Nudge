@@ -915,6 +915,15 @@ if (calendarHeader && calendarSection) {
   });
 }
 
+// Reminder Settings section toggle
+const reminderHeader = document.getElementById('reminder-header');
+const reminderSection = document.getElementById('reminder-section');
+if (reminderHeader && reminderSection) {
+  reminderHeader.addEventListener('click', () => {
+    reminderSection.classList.toggle('collapsed');
+  });
+}
+
 // Test & Debug section toggle
 const testHeader = document.getElementById('test-header');
 const testSection = document.getElementById('test-section');

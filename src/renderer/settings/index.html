@@ -61,69 +61,73 @@
       </section>
 
       <!-- Reminder Settings -->
-      <section class="card">
-        <h2>Reminder Settings</h2>
-        
-        <div class="setting-item">
-          <label>Remind me before meetings:</label>
-          <div class="checkbox-group">
+      <section class="card collapsible collapsed" id="reminder-section">
+        <h2 id="reminder-header" class="collapsible-header">
+          ⏰ Reminder Settings
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <div class="setting-item">
+            <label>Remind me before meetings:</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-10" checked>
+                <span>10 minutes</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-5" checked>
+                <span>5 minutes</span>
+              </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="remind-1" checked>
+                <span>1 minute</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <label for="sync-interval">Sync interval:</label>
+            <select id="sync-interval">
+              <option value="1">Every 1 minute</option>
+              <option value="5">Every 5 minutes</option>
+              <option value="10">Every 10 minutes</option>
+              <option value="15">Every 15 minutes</option>
+              <option value="30">Every 30 minutes</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
             <label class="checkbox-label">
-              <input type="checkbox" id="remind-10" checked>
-              <span>10 minutes</span>
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="remind-5" checked>
-              <span>5 minutes</span>
-            </label>
-            <label class="checkbox-label">
-              <input type="checkbox" id="remind-1" checked>
-              <span>1 minute</span>
+              <input type="checkbox" id="sound-enabled" checked>
+              <span>Play alert sound</span>
             </label>
           </div>
-        </div>
 
-        <div class="setting-item">
-          <label for="sync-interval">Sync interval:</label>
-          <select id="sync-interval">
-            <option value="1">Every 1 minute</option>
-            <option value="5">Every 5 minutes</option>
-            <option value="10">Every 10 minutes</option>
-            <option value="15">Every 15 minutes</option>
-            <option value="30">Every 30 minutes</option>
-          </select>
-        </div>
+          <div class="setting-item" id="sound-options" style="margin-left: 28px;">
+            <label for="sound-file">Alert sound:</label>
+            <select id="sound-file">
+              <option value="default.mp3">Default Alert</option>
+              <option value="gentle.mp3">Gentle Chime</option>
+              <option value="urgent.mp3">Urgent Bell</option>
+              <option value="digital.mp3">Digital Beep</option>
+              <option value="custom.mp3">Custom Sound</option>
+            </select>
+          </div>
 
-        <div class="setting-item">
-          <label class="checkbox-label">
-            <input type="checkbox" id="sound-enabled" checked>
-            <span>Play alert sound</span>
-          </label>
-        </div>
+          <div class="setting-item" id="volume-control" style="margin-left: 28px;">
+            <label for="sound-volume">Volume: <span id="volume-value">70</span>%</label>
+            <input type="range" id="sound-volume" min="0" max="100" value="70" style="width: 100%; max-width: 300px;">
+          </div>
 
-        <div class="setting-item" id="sound-options" style="margin-left: 28px;">
-          <label for="sound-file">Alert sound:</label>
-          <select id="sound-file">
-            <option value="default.mp3">Default Alert</option>
-            <option value="gentle.mp3">Gentle Chime</option>
-            <option value="urgent.mp3">Urgent Bell</option>
-            <option value="digital.mp3">Digital Beep</option>
-            <option value="custom.mp3">Custom Sound</option>
-          </select>
-        </div>
-
-        <div class="setting-item" id="volume-control" style="margin-left: 28px;">
-          <label for="sound-volume">Volume: <span id="volume-value">70</span>%</label>
-          <input type="range" id="sound-volume" min="0" max="100" value="70" style="width: 100%; max-width: 300px;">
-        </div>
-
-        <div class="setting-item">
-          <label class="checkbox-label">
-            <input type="checkbox" id="preview-notifications-enabled" checked>
-            <span>Show preview notification (30s before full-screen)</span>
-          </label>
-          <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
-            A gentle notification appears before the full-screen alert
-          </p>
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="preview-notifications-enabled" checked>
+              <span>Show preview notification (30s before full-screen)</span>
+            </label>
+            <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
+              A gentle notification appears before the full-screen alert
+            </p>
+          </div>
         </div>
       </section>
 
