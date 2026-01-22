@@ -75,6 +75,30 @@
             <button class="btn btn-secondary" id="refresh-calendars-btn">
               Refresh Calendars
             </button>
+            <button class="btn" id="create-calendar-btn">
+              ➕ Create Calendar
+            </button>
+          </div>
+
+          <!-- Create Calendar Form (hidden by default) -->
+          <div id="create-calendar-form" style="display: none; margin-top: 16px; padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--surface-color);">
+            <h4 style="margin-top: 0; margin-bottom: 16px;">Create New Calendar</h4>
+            <div class="setting-item">
+              <label for="new-calendar-name">Calendar Name *</label>
+              <input type="text" id="new-calendar-name" placeholder="e.g., Work Meetings, Personal, Project Alpha" maxlength="100">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-description">Description (optional)</label>
+              <input type="text" id="new-calendar-description" placeholder="Brief description of this calendar" maxlength="500">
+            </div>
+            <div class="setting-item">
+              <label for="new-calendar-location">Location (optional)</label>
+              <input type="text" id="new-calendar-location" placeholder="Default location for events" maxlength="100">
+            </div>
+            <div class="setting-actions" style="margin-top: 16px;">
+              <button class="btn" id="save-new-calendar-btn">Create Calendar</button>
+              <button class="btn btn-secondary" id="cancel-create-calendar-btn">Cancel</button>
+            </div>
           </div>
 
           <div id="calendars-list" style="margin-top: 16px;">

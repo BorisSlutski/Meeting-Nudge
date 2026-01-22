@@ -26,6 +26,13 @@ const themeOptions = document.querySelectorAll('.theme-option');
 
 // Calendar elements
 const refreshCalendarsBtn = document.getElementById('refresh-calendars-btn');
+const createCalendarBtn = document.getElementById('create-calendar-btn');
+const createCalendarForm = document.getElementById('create-calendar-form');
+const saveNewCalendarBtn = document.getElementById('save-new-calendar-btn');
+const cancelCreateCalendarBtn = document.getElementById('cancel-create-calendar-btn');
+const newCalendarName = document.getElementById('new-calendar-name');
+const newCalendarDescription = document.getElementById('new-calendar-description');
+const newCalendarLocation = document.getElementById('new-calendar-location');
 const calendarsList = document.getElementById('calendars-list');
 const calendarStatus = document.getElementById('calendar-status');
 
@@ -787,6 +794,82 @@ async function saveSelectedCalendars() {
 // Calendar event listeners
 if (refreshCalendarsBtn) {
   refreshCalendarsBtn.addEventListener('click', loadCalendars);
+}
+
+if (createCalendarBtn) {
+  createCalendarBtn.addEventListener('click', () => {
+    createCalendarForm.style.display = createCalendarForm.style.display === 'none' ? 'block' : 'none';
+    if (createCalendarForm.style.display === 'block') {
+      newCalendarName.focus();
+    }
+  });
+}
+
+if (cancelCreateCalendarBtn) {
+  cancelCreateCalendarBtn.addEventListener('click', () => {
+    createCalendarForm.style.display = 'none';
+    clearCreateCalendarForm();
+  });
+}
+
+if (saveNewCalendarBtn) {
+  saveNewCalendarBtn.addEventListener('click', createNewCalendar);
+}
+
+function clearCreateCalendarForm() {
+  newCalendarName.value = '';
+  newCalendarDescription.value = '';
+  newCalendarLocation.value = '';
+}
+
+async function createNewCalendar() {
+  const name = newCalendarName.value.trim();
+  const description = newCalendarDescription.value.trim();
+  const location = newCalendarLocation.value.trim();
+
+  if (!name) {
+    alert('Calendar name is required');
+    newCalendarName.focus();
+    return;
+  }
+
+  saveNewCalendarBtn.disabled = true;
+  saveNewCalendarBtn.textContent = 'Creating...';
+
+  try {
+    const calendarData = { summary: name };
+    if (description) calendarData.description = description;
+    if (location) calendarData.location = location;
+
+    const result = await window.electronAPI.createGoogleCalendar(calendarData);
+
+    if (result.success) {
+      calendarStatus.textContent = `✓ Created calendar "${name}"`;
+      calendarStatus.style.color = '#4caf50';
+
+      // Hide form and clear it
+      createCalendarForm.style.display = 'none';
+      clearCreateCalendarForm();
+
+      // Refresh calendar list to show the new calendar
+      await loadCalendars();
+      await loadUpcomingEvents();
+    } else {
+      calendarStatus.textContent = `Error: ${result.error}`;
+      calendarStatus.style.color = '#f44336';
+    }
+  } catch (error) {
+    console.error('Failed to create calendar:', error);
+    calendarStatus.textContent = 'Failed to create calendar';
+    calendarStatus.style.color = '#f44336';
+  }
+
+  saveNewCalendarBtn.disabled = false;
+  saveNewCalendarBtn.textContent = 'Create Calendar';
+
+  setTimeout(() => {
+    calendarStatus.textContent = '';
+  }, 5000);
 }
 
 // Load calendars on settings load (if Google is connected)

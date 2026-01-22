@@ -275,6 +275,54 @@ class GoogleCalendar {
   }
 
   /**
+   * Create a new calendar
+   * @param {Object} calendarData - Calendar data
+   * @param {string} calendarData.summary - Calendar name/title
+   * @param {string} [calendarData.description] - Calendar description
+   * @param {string} [calendarData.location] - Calendar location
+   * @param {string} [calendarData.timeZone] - Calendar timezone
+   * @returns {Promise<Object>} Created calendar object
+   */
+  async createCalendar(calendarData) {
+    if (!this.oauth2Client || !this.calendar) {
+      await this.initializeClient();
+    }
+
+    if (!calendarData.summary || calendarData.summary.trim() === '') {
+      throw new Error('Calendar name is required');
+    }
+
+    try {
+      const calendarResource = {
+        summary: calendarData.summary.trim(),
+        description: calendarData.description || '',
+        location: calendarData.location || '',
+        timeZone: calendarData.timeZone || Intl.DateTimeFormat().resolvedOptions().timeZone
+      };
+
+      const response = await this.calendar.calendars.insert({
+        resource: calendarResource
+      });
+
+      console.log('Created calendar:', response.data.id);
+      return {
+        id: response.data.id,
+        summary: response.data.summary,
+        description: response.data.description || '',
+        location: response.data.location || '',
+        timeZone: response.data.timeZone,
+        primary: false,
+        backgroundColor: '#3788d8', // Default color
+        accessRole: 'owner',
+        selected: true // Auto-select newly created calendars
+      };
+    } catch (error) {
+      console.error('Failed to create calendar:', error);
+      throw new Error(`Failed to create calendar: ${error.message}`);
+    }
+  }
+
+  /**
    * Get upcoming events from multiple calendars
    * @param {Array<string>} calendarIds - Array of calendar IDs to fetch from (defaults to ['primary'])
    * @returns {Promise<Array>} Array of events from all specified calendars
