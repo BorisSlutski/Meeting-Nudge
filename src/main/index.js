@@ -641,15 +641,15 @@ ipcMain.handle('acknowledge-meeting', () => {
 ipcMain.handle('snooze-meeting', (event, data) => {
   const minutes = data?.minutes || 5;
   const meetingEvent = data?.event;
-  
+
   closeBlockingWindow();
-  
+
   // Schedule snooze reminder if we have event data
   if (scheduler && meetingEvent) {
     const success = scheduler.snooze(meetingEvent, minutes);
     return { success, snoozedFor: minutes };
   }
-  
+
   return { success: false, error: 'No event data provided' };
 });
 
