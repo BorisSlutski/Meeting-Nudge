@@ -19,6 +19,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Calendar management
   listGoogleCalendars: () => ipcRenderer.invoke('list-google-calendars'),
   saveSelectedCalendars: (calendarIds) => ipcRenderer.invoke('save-selected-calendars', calendarIds),
+  createGoogleCalendar: (calendarData) => ipcRenderer.invoke('create-google-calendar', calendarData),
 
   // Blocking window actions
   acknowledgeMeeting: () => ipcRenderer.invoke('acknowledge-meeting'),

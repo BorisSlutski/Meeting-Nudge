@@ -507,6 +507,31 @@ ipcMain.handle('save-selected-calendars', async (event, calendarIds) => {
   }
 });
 
+ipcMain.handle('create-google-calendar', async (event, calendarData) => {
+  if (!googleCalendar) {
+    return { success: false, error: 'Google Calendar not initialized' };
+  }
+
+  try {
+    const newCalendar = await googleCalendar.createCalendar(calendarData);
+
+    // Auto-add to selected calendars
+    const selectedCalendars = store.get('selectedCalendars') || ['primary'];
+    if (!selectedCalendars.includes(newCalendar.id)) {
+      selectedCalendars.push(newCalendar.id);
+      store.set('selectedCalendars', selectedCalendars);
+    }
+
+    // Re-sync to include new calendar
+    await syncCalendars();
+
+    return { success: true, calendar: newCalendar };
+  } catch (error) {
+    console.error('Failed to create calendar:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('connect-google', async () => {
   try {
     await googleCalendar.authenticate();
