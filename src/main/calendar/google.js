@@ -2,7 +2,7 @@ const { google } = require('googleapis');
 const { BrowserWindow } = require('electron');
 const crypto = require('crypto');
 const { SecureStore } = require('../store');
-const { parseConferenceLink } = require('./parser');
+const { parseConferenceLink, parseAllConferenceLinks } = require('./parser');
 
 // OAuth configuration
 // Users need to create their own Google Cloud project and get these credentials
@@ -369,11 +369,16 @@ class GoogleCalendar {
 
           // Map events with calendar information
           const mappedEvents = events.map(event => {
-            const conferenceInfo = parseConferenceLink({
+            // Get all conference links
+            const allConferenceLinks = parseAllConferenceLinks({
               description: event.description,
               location: event.location,
-              conferenceData: event.conferenceData
+              conferenceData: event.conferenceData,
+              hangoutLink: event.hangoutLink
             });
+
+            // Keep backwards compatibility with single link
+            const primaryLink = allConferenceLinks.length > 0 ? allConferenceLinks[0] : null;
 
             return {
               id: `google-${calendarId}-${event.id}`,
@@ -385,9 +390,12 @@ class GoogleCalendar {
               source: 'google',
               calendarId: calendarId,
               calendarName: calendarId === 'primary' ? 'Primary' : calendarId,
-              conferenceLink: conferenceInfo?.link || null,
-              conferenceName: conferenceInfo?.name || null,
-              conferenceIcon: conferenceInfo?.icon || null,
+              // Primary link (backwards compatibility)
+              conferenceLink: primaryLink?.url || null,
+              conferenceName: primaryLink?.name || null,
+              conferenceIcon: primaryLink?.icon || null,
+              // All conference links (new feature)
+              conferenceLinks: allConferenceLinks,
               reminderMinutes: 10 // Default, will be overridden by scheduler
             };
           });

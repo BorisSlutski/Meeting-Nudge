@@ -8,7 +8,7 @@ let lastSnoozeMinutes = 5; // Default snooze duration
 
 // DOM elements - will be initialized after DOM loads
 let meetingTitle, reminderPrefix, minutesLeft, reminderSuffix, meetingTime, timeText,
-    meetingLocation, locationText, joinBtn, joinIcon, acknowledgeBtn, snoozeBtn,
+    meetingLocation, locationText, joinButtonsContainer, acknowledgeBtn, snoozeBtn,
     snoozeText, snoozeMenuBtn, snoozeOptions, countdownTimer, alertSound, container;
 
 // Initialize DOM elements
@@ -23,8 +23,7 @@ function initializeDOMElements() {
   timeText = document.getElementById('time-text');
   meetingLocation = document.getElementById('meeting-location');
   locationText = document.getElementById('location-text');
-  joinBtn = document.getElementById('join-btn');
-  joinIcon = document.getElementById('join-icon');
+  joinButtonsContainer = document.getElementById('join-buttons-container');
   acknowledgeBtn = document.getElementById('acknowledge-btn');
   snoozeBtn = document.getElementById('snooze-btn');
   snoozeText = document.getElementById('snooze-text');
@@ -35,7 +34,7 @@ function initializeDOMElements() {
   container = document.querySelector('.container');
 
   console.log('DOM elements found:');
-  console.log('- joinBtn:', !!joinBtn);
+  console.log('- joinButtonsContainer:', !!joinButtonsContainer);
   console.log('- acknowledgeBtn:', !!acknowledgeBtn);
   console.log('- snoozeBtn:', !!snoozeBtn);
   console.log('- snoozeMenuBtn:', !!snoozeMenuBtn);
@@ -53,33 +52,46 @@ function initializeDOMElements() {
   console.log('✅ DOM initialization complete');
 }
 
+/**
+ * Create a join button for a conference link
+ */
+function createJoinButton(conferenceLink, index) {
+  const button = document.createElement('button');
+  button.className = 'btn btn-primary join-btn';
+  button.setAttribute('data-url', conferenceLink.url);
+  button.setAttribute('data-index', index);
+  
+  const icon = document.createElement('span');
+  icon.className = 'btn-icon';
+  icon.textContent = conferenceLink.icon || '📹';
+  
+  const text = document.createElement('span');
+  text.textContent = `Join ${conferenceLink.name}`;
+  
+  button.appendChild(icon);
+  button.appendChild(text);
+  
+  // Add click handler
+  button.addEventListener('click', async () => {
+    console.log(`🔴 JOIN BUTTON CLICKED: ${conferenceLink.name} - ${conferenceLink.url}`);
+    try {
+      stopSound();
+      clearInterval(countdownInterval);
+      
+      const result = await window.electronAPI.joinMeeting(conferenceLink.url);
+      console.log('Join meeting result:', result);
+    } catch (error) {
+      console.error('Error in join button handler:', error);
+    }
+  });
+  
+  return button;
+}
+
 // Attach event listeners to buttons
 function attachEventListeners() {
   console.log('Attaching event listeners to buttons...');
   console.log('window.electronAPI available:', !!window.electronAPI);
-  
-  if (joinBtn) {
-    console.log('Join button found, attaching listener');
-    joinBtn.addEventListener('click', async () => {
-      console.log('🔴 JOIN BUTTON CLICKED!');
-      try {
-        if (currentEvent?.conferenceLink) {
-          console.log('Conference link:', currentEvent.conferenceLink);
-          stopSound();
-          clearInterval(countdownInterval);
-          
-          const result = await window.electronAPI.joinMeeting(currentEvent.conferenceLink);
-          console.log('Join meeting result:', result);
-        } else {
-          console.log('No conference link available');
-        }
-      } catch (error) {
-        console.error('Error in join button handler:', error);
-      }
-    });
-  } else {
-    console.error('❌ Join button NOT FOUND');
-  }
 
   if (acknowledgeBtn) {
     console.log('Acknowledge button found, attaching listener');
@@ -254,16 +266,37 @@ function showEvent(event) {
     meetingLocation.style.display = 'none';
   }
   
-  // Set join button if conference link exists
-  if (event.conferenceLink) {
-    joinBtn.style.display = 'flex';
-    joinIcon.textContent = event.conferenceIcon || '📹';
+  // Clear existing join buttons
+  if (joinButtonsContainer) {
+    joinButtonsContainer.innerHTML = '';
     
-    // Update button text based on conference type
-    const joinText = event.conferenceName ? `Join ${event.conferenceName}` : 'Join Meeting';
-    joinBtn.querySelector('span:last-child').textContent = joinText;
-  } else {
-    joinBtn.style.display = 'none';
+    // Create join buttons for all conference links
+    const conferenceLinks = event.conferenceLinks || [];
+    
+    // Fallback to old single link format for backwards compatibility
+    if (conferenceLinks.length === 0 && event.conferenceLink) {
+      conferenceLinks.push({
+        url: event.conferenceLink,
+        name: event.conferenceName || 'Meeting',
+        icon: event.conferenceIcon || '📹'
+      });
+    }
+    
+    // Create a button for each conference link
+    conferenceLinks.forEach((link, index) => {
+      const button = createJoinButton(link, index);
+      joinButtonsContainer.appendChild(button);
+    });
+    
+    // Show/hide container based on whether there are links
+    if (conferenceLinks.length > 0) {
+      joinButtonsContainer.style.display = 'flex';
+      joinButtonsContainer.style.flexWrap = 'wrap';
+      joinButtonsContainer.style.gap = '10px';
+      joinButtonsContainer.style.width = '100%';
+    } else {
+      joinButtonsContainer.style.display = 'none';
+    }
   }
 
   // Update snooze button text with last selected duration

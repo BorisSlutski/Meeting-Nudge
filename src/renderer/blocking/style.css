@@ -186,12 +186,37 @@ h1 {
   box-shadow: 0 8px 30px rgba(76, 175, 80, 0.4);
 }
 
-#join-btn {
-  display: none;
-}
-
 .btn-primary:hover {
   box-shadow: 0 12px 40px rgba(76, 175, 80, 0.6);
+}
+
+/* Join buttons container */
+#join-buttons-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+}
+
+#join-buttons-container .join-btn {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 200px;
+}
+
+/* Special colors for different platforms */
+#join-buttons-container .join-btn:nth-child(1) {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+}
+
+#join-buttons-container .join-btn:nth-child(2) {
+  background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+}
+
+#join-buttons-container .join-btn:nth-child(3) {
+  background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
 }
 
 .btn-secondary {

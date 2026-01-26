@@ -20,6 +20,7 @@ A cross-platform desktop app that blocks your entire screen before meetings, mak
 
 - **Full-Screen Blocking** - Unmissable alerts that cover your entire screen
 - **Google Calendar Support** - Connect your Google Calendar
+- **Multiple Meeting Links** - Shows separate buttons for each meeting link (Zoom, Meet, Teams, etc.) when multiple options are available
 - **One-Click Join** - Automatically detects Zoom, Meet, Teams, and 10+ other video conferencing links
 - **Multiple Reminders** - Get reminded 10, 5, and 1 minute before meetings
 - **Snooze** - Need 5 more minutes? Just snooze

@@ -109,30 +109,45 @@ const CONFERENCE_PATTERNS = [
 ];
 
 /**
- * Parse conference link from event data
+ * Parse conference link from event data (returns first found)
  * @param {Object} event - Calendar event with description, location, conferenceData
  * @returns {Object|null} Conference info or null
  */
 function parseConferenceLink(event) {
+  const allLinks = parseAllConferenceLinks(event);
+  return allLinks.length > 0 ? allLinks[0] : null;
+}
+
+/**
+ * Parse ALL conference links from event data
+ * @param {Object} event - Calendar event with description, location, conferenceData
+ * @returns {Array} Array of conference link objects
+ */
+function parseAllConferenceLinks(event) {
+  const links = [];
+  const seenUrls = new Set();
+
   // First, check for structured conference data (Google Calendar provides this)
   if (event.conferenceData?.entryPoints) {
     const videoEntry = event.conferenceData.entryPoints.find(
       ep => ep.entryPointType === 'video'
     );
-    if (videoEntry) {
-      return {
+    if (videoEntry && !seenUrls.has(videoEntry.uri)) {
+      links.push({
         url: videoEntry.uri,
         name: event.conferenceData.conferenceSolution?.name || 'Video Call',
         icon: '📹'
-      };
+      });
+      seenUrls.add(videoEntry.uri);
     }
   }
 
   // Check hangoutLink field (Google Calendar specific)
-  if (event.hangoutLink) {
+  if (event.hangoutLink && !seenUrls.has(event.hangoutLink)) {
     const hangoutInfo = isConferenceLink(event.hangoutLink);
     if (hangoutInfo) {
-      return hangoutInfo;
+      links.push(hangoutInfo);
+      seenUrls.add(event.hangoutLink);
     }
   }
 
@@ -145,18 +160,26 @@ function parseConferenceLink(event) {
     event.htmlLink || ''
   ].join(' ');
 
+  // Extract all conference links from the text
   for (const conf of CONFERENCE_PATTERNS) {
+    // Reset regex lastIndex
+    conf.pattern.lastIndex = 0;
     const matches = searchText.match(conf.pattern);
     if (matches && matches.length > 0) {
-      return {
-        url: matches[0],
-        name: conf.name,
-        icon: conf.icon
-      };
+      for (const match of matches) {
+        if (!seenUrls.has(match)) {
+          links.push({
+            url: match,
+            name: conf.name,
+            icon: conf.icon
+          });
+          seenUrls.add(match);
+        }
+      }
     }
   }
 
-  return null;
+  return links;
 }
 
 /**
@@ -192,6 +215,7 @@ function isConferenceLink(url) {
 
 module.exports = {
   parseConferenceLink,
+  parseAllConferenceLinks,
   extractAllLinks,
   isConferenceLink,
   CONFERENCE_PATTERNS
