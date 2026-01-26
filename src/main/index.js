@@ -710,19 +710,23 @@ ipcMain.handle('generate-test-events', () => {
   const testEvents = [
     {
       id: 'test-1',
-      title: 'Test Meeting - Starting Soon',
+      title: 'Test Meeting - Multiple Links',
       start: new Date(now.getTime() + 2 * 60 * 1000).toISOString(), // 2 minutes from now
       end: new Date(now.getTime() + 32 * 60 * 1000).toISOString(),
       location: 'Test Room',
-      description: 'This is a test meeting',
+      description: 'This is a test meeting with multiple conference links',
       source: 'test',
       conferenceLink: 'https://zoom.us/j/123456789',
       conferenceName: 'Zoom',
-      conferenceIcon: '📹'
+      conferenceIcon: '📹',
+      conferenceLinks: [
+        { url: 'https://zoom.us/j/123456789', name: 'Zoom', icon: '📹' },
+        { url: 'https://meet.google.com/abc-defg-hij', name: 'Google Meet', icon: '🟢' }
+      ]
     },
     {
       id: 'test-2',
-      title: 'Test Meeting - 15 Minutes',
+      title: 'Test Meeting - Single Link',
       start: new Date(now.getTime() + 15 * 60 * 1000).toISOString(),
       end: new Date(now.getTime() + 45 * 60 * 1000).toISOString(),
       location: 'Conference Room B',
@@ -730,19 +734,26 @@ ipcMain.handle('generate-test-events', () => {
       source: 'test',
       conferenceLink: 'https://meet.google.com/abc-defg-hij',
       conferenceName: 'Google Meet',
-      conferenceIcon: '🟢'
+      conferenceIcon: '🟢',
+      conferenceLinks: [
+        { url: 'https://meet.google.com/abc-defg-hij', name: 'Google Meet', icon: '🟢' }
+      ]
     },
     {
       id: 'test-3',
-      title: 'Test Meeting - 1 Hour',
+      title: 'Test Meeting - Teams + Zoom',
       start: new Date(now.getTime() + 60 * 60 * 1000).toISOString(),
       end: new Date(now.getTime() + 90 * 60 * 1000).toISOString(),
       location: 'Virtual',
-      description: 'Test meeting in 1 hour',
+      description: 'Test meeting with Teams and Zoom options',
       source: 'test',
       conferenceLink: 'https://teams.microsoft.com/l/meetup-join/test',
       conferenceName: 'Microsoft Teams',
-      conferenceIcon: '🟣'
+      conferenceIcon: '🟣',
+      conferenceLinks: [
+        { url: 'https://teams.microsoft.com/l/meetup-join/test', name: 'Microsoft Teams', icon: '🟣' },
+        { url: 'https://zoom.us/j/987654321', name: 'Zoom', icon: '📹' }
+      ]
     }
   ];
   
