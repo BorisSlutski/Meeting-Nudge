@@ -37,6 +37,16 @@ class Scheduler {
       job.cancel();
     }
     this.previewJobs.clear();
+    
+    // Clear snoozed jobs to prevent stale reminders for moved/deleted meetings
+    const snoozedCount = this.snoozedJobs.size;
+    for (const job of this.snoozedJobs.values()) {
+      job.cancel();
+    }
+    this.snoozedJobs.clear();
+    if (snoozedCount > 0) {
+      console.log(`Cleared ${snoozedCount} snoozed reminder(s) during sync`);
+    }
 
     const reminderTimes = this.store.get('reminderTimes') || [10, 5, 1];
     const previewEnabled = this.store.get('previewNotificationsEnabled') !== false;
