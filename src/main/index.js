@@ -24,7 +24,8 @@ const store = new Store({
     soundFile: 'alert.mp3',
     googleConnected: false,
     pausedUntil: null,
-    previewNotificationsEnabled: true
+    previewNotificationsEnabled: true,
+    includeFocusTime: true // Include focus time events by default
   }
 });
 
@@ -100,6 +101,11 @@ function sanitizeSettings(settings) {
   // Validate preview notifications enabled (must be boolean)
   if (typeof settings?.previewNotificationsEnabled === 'boolean') {
     sanitized.previewNotificationsEnabled = settings.previewNotificationsEnabled;
+  }
+
+  // Validate includeFocusTime (must be boolean)
+  if (typeof settings?.includeFocusTime === 'boolean') {
+    sanitized.includeFocusTime = settings.includeFocusTime;
   }
 
   // Validate pausedUntil (must be valid ISO date string or null)
@@ -259,7 +265,9 @@ async function syncCalendars(attemptNumber = 0) {
       try {
         // Get selected calendars, default to primary if none selected
         const selectedCalendars = store.get('selectedCalendars') || ['primary'];
-        const googleEvents = await googleCalendar.getUpcomingEvents(selectedCalendars);
+        // Get includeFocusTime setting (defaults to true)
+        const includeFocusTime = store.get('includeFocusTime') !== false;
+        const googleEvents = await googleCalendar.getUpcomingEvents(selectedCalendars, { includeFocusTime });
         allEvents = allEvents.concat(googleEvents);
         console.log(`Fetched ${googleEvents.length} events from ${selectedCalendars.length} Google calendars`);
       } catch (error) {
@@ -488,6 +496,12 @@ ipcMain.handle('save-settings', (event, settings) => {
   }
   if (sanitized.reminderTimes && scheduler) {
     scheduler.updateEvents(allEvents);
+  }
+  // If includeFocusTime setting changed, re-sync calendars
+  if (sanitized.includeFocusTime !== undefined) {
+    syncCalendars().catch(error => {
+      console.error('Failed to re-sync after includeFocusTime change:', error);
+    });
   }
   return true;
 });

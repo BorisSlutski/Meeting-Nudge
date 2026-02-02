@@ -35,6 +35,7 @@ const newCalendarDescription = document.getElementById('new-calendar-description
 const newCalendarLocation = document.getElementById('new-calendar-location');
 const calendarsList = document.getElementById('calendars-list');
 const calendarStatus = document.getElementById('calendar-status');
+const includeFocusTime = document.getElementById('include-focus-time');
 
 // Current settings
 let settings = {};
@@ -107,6 +108,9 @@ async function loadSettings() {
   }
   if (syncInterval) {
     syncInterval.value = String(settings.syncInterval || 5);
+  }
+  if (includeFocusTime) {
+    includeFocusTime.checked = settings.includeFocusTime !== false;
   }
 
   await loadOAuthConfig();
@@ -235,7 +239,8 @@ async function saveSettings() {
     soundEnabled: soundEnabled.checked,
     soundFile: soundFile?.value || 'default.mp3',
     soundVolume: parseInt(soundVolume?.value, 10) || 70,
-    previewNotificationsEnabled: previewNotificationsEnabled?.checked !== false
+    previewNotificationsEnabled: previewNotificationsEnabled?.checked !== false,
+    includeFocusTime: includeFocusTime?.checked !== false
   };
   
   await window.electronAPI.saveSettings(newSettings);
@@ -483,6 +488,9 @@ if (previewNotificationsEnabled) {
 }
 if (syncInterval) {
   syncInterval.addEventListener('change', saveSettings);
+}
+if (includeFocusTime) {
+  includeFocusTime.addEventListener('change', saveSettings);
 }
 
 // Setup instructions toggle
