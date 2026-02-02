@@ -325,9 +325,11 @@ class GoogleCalendar {
   /**
    * Get upcoming events from multiple calendars
    * @param {Array<string>} calendarIds - Array of calendar IDs to fetch from (defaults to ['primary'])
+   * @param {Object} options - Optional settings for filtering events
+   * @param {boolean} options.includeFocusTime - Whether to include focus time events (defaults to true)
    * @returns {Promise<Array>} Array of events from all specified calendars
    */
-  async getUpcomingEvents(calendarIds = ['primary']) {
+  async getUpcomingEvents(calendarIds = ['primary'], options = {}) {
     if (!this.oauth2Client || !this.calendar) {
       // Try to restore from saved token
       const token = await SecureStore.getToken(TOKEN_KEY);
@@ -367,8 +369,32 @@ class GoogleCalendar {
 
           const events = response.data.items || [];
 
+          // Get includeFocusTime setting (defaults to true)
+          const includeFocusTime = options.includeFocusTime !== false;
+
+          // Filter to only include relevant events (always exclude working locations and out of office)
+          const filteredEvents = events.filter(event => {
+            // eventType: 'default' = regular event, 'workingLocation' = office/home, 'outOfOffice', 'focusTime'
+            const eventType = event.eventType || 'default';
+            
+            // Always include regular events
+            if (eventType === 'default') {
+              return true;
+            }
+            
+            // Include focus time only if setting is enabled
+            if (eventType === 'focusTime') {
+              return includeFocusTime;
+            }
+            
+            // Exclude working locations, out of office, and other types
+            return false;
+          });
+
+          console.log(`Filtered ${events.length} items to ${filteredEvents.length} events (includeFocusTime: ${includeFocusTime})`);
+
           // Map events with calendar information
-          const mappedEvents = events.map(event => {
+          const mappedEvents = filteredEvents.map(event => {
             // Get all conference links
             const allConferenceLinks = parseAllConferenceLinks({
               description: event.description,
