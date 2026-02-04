@@ -286,8 +286,19 @@ async function syncCalendars(attemptNumber = 0) {
     // Sort by start time
     allEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
 
+    // Log event details for debugging
+    console.log('=== EVENTS FETCHED ===');
+    allEvents.forEach((event, index) => {
+      const eventStart = new Date(event.start);
+      console.log(`${index + 1}. ${event.title}`);
+      console.log(`   ID: ${event.id}`);
+      console.log(`   Start: ${eventStart.toLocaleString()}`);
+      console.log(`   Source: ${event.source}`);
+    });
+
     // Update scheduler with new events
     if (scheduler) {
+      console.log('=== UPDATING SCHEDULER ===');
       scheduler.updateEvents(allEvents);
     }
 

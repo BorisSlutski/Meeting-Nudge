@@ -27,31 +27,68 @@ class Scheduler {
    * Cancel all existing jobs and reschedule
    */
   rescheduleAll() {
-    // Cancel all existing jobs
-    for (const job of this.scheduledJobs.values()) {
-      job.cancel();
-    }
-    this.scheduledJobs.clear();
+    console.log('=== RESCHEDULE ALL - Starting ===');
+    console.log(`Current jobs: ${this.scheduledJobs.size} reminders, ${this.previewJobs.size} previews, ${this.snoozedJobs.size} snoozed`);
     
-    for (const job of this.previewJobs.values()) {
-      job.cancel();
-    }
-    this.previewJobs.clear();
+    // First, clean up any stale job references
+    this.cleanupStaleJobs();
+    console.log(`After cleanup: ${this.scheduledJobs.size} reminders, ${this.previewJobs.size} previews, ${this.snoozedJobs.size} snoozed`);
     
-    // Clear snoozed jobs to prevent stale reminders for moved/deleted meetings
-    const snoozedCount = this.snoozedJobs.size;
-    for (const job of this.snoozedJobs.values()) {
-      job.cancel();
+    // Cancel all existing jobs with better error handling
+    // Process scheduledJobs
+    const scheduledJobIds = Array.from(this.scheduledJobs.keys());
+    for (const jobId of scheduledJobIds) {
+      const job = this.scheduledJobs.get(jobId);
+      if (job) {
+        try {
+          job.cancel();
+          console.log(`✓ Canceled scheduled job: ${jobId}`);
+        } catch (error) {
+          console.error(`✗ Error canceling job ${jobId}:`, error);
+        }
+      }
+      this.scheduledJobs.delete(jobId);
     }
-    this.snoozedJobs.clear();
-    if (snoozedCount > 0) {
-      console.log(`Cleared ${snoozedCount} snoozed reminder(s) during sync`);
+    
+    // Process previewJobs
+    const previewJobIds = Array.from(this.previewJobs.keys());
+    for (const jobId of previewJobIds) {
+      const job = this.previewJobs.get(jobId);
+      if (job) {
+        try {
+          job.cancel();
+          console.log(`✓ Canceled preview job: ${jobId}`);
+        } catch (error) {
+          console.error(`✗ Error canceling preview job ${jobId}:`, error);
+        }
+      }
+      this.previewJobs.delete(jobId);
+    }
+    
+    // Process snoozedJobs
+    const snoozedJobIds = Array.from(this.snoozedJobs.keys());
+    for (const jobId of snoozedJobIds) {
+      const job = this.snoozedJobs.get(jobId);
+      if (job) {
+        try {
+          job.cancel();
+          console.log(`✓ Canceled snoozed job: ${jobId}`);
+        } catch (error) {
+          console.error(`✗ Error canceling snoozed job ${jobId}:`, error);
+        }
+      }
+      this.snoozedJobs.delete(jobId);
+    }
+    
+    if (snoozedJobIds.length > 0) {
+      console.log(`Cleared ${snoozedJobIds.length} snoozed reminder(s) during sync`);
     }
 
     const reminderTimes = this.store.get('reminderTimes') || [10, 5, 1];
     const previewEnabled = this.store.get('previewNotificationsEnabled') !== false;
     const previewSeconds = 30; // Preview 30 seconds before full-screen
     const now = new Date();
+    console.log(`Rescheduling for ${this.events.length} events at ${now.toISOString()}`);
 
     for (const event of this.events) {
       const eventStart = new Date(event.start);
@@ -77,8 +114,18 @@ class Scheduler {
           if (previewTime > now) {
             const previewId = `preview-${event.id}-${minutesBefore}`;
             
+            // Check if this job ID already exists (shouldn't happen, but safety check)
+            if (this.previewJobs.has(previewId)) {
+              console.warn(`⚠ Preview job ${previewId} already exists! Canceling old one.`);
+              const oldJob = this.previewJobs.get(previewId);
+              oldJob.cancel();
+              this.previewJobs.delete(previewId);
+            }
+            
             const previewJob = schedule.scheduleJob(previewTime, () => {
               console.log(`Preview notification: ${event.title} (${minutesBefore} min before)`);
+              // Remove from tracking after execution
+              this.previewJobs.delete(previewId);
               this.onPreviewNotification({
                 ...event,
                 reminderMinutes: minutesBefore
@@ -95,8 +142,19 @@ class Scheduler {
         // Schedule main reminder
         const jobId = `${event.id}-${minutesBefore}`;
         
+        // Check if this job ID already exists (shouldn't happen, but safety check)
+        if (this.scheduledJobs.has(jobId)) {
+          console.warn(`⚠ Job ${jobId} already exists! Canceling old one.`);
+          const oldJob = this.scheduledJobs.get(jobId);
+          oldJob.cancel();
+          this.scheduledJobs.delete(jobId);
+        }
+        
         const job = schedule.scheduleJob(reminderTime, () => {
-          console.log(`Triggering reminder for: ${event.title} (${minutesBefore} min before)`);
+          console.log(`🔔 TRIGGERING reminder for: ${event.title} (${minutesBefore} min before) [Job ID: ${jobId}]`);
+          console.log(`   Event start: ${eventStart.toLocaleString()}, Current time: ${new Date().toLocaleString()}`);
+          // Remove from tracking after execution
+          this.scheduledJobs.delete(jobId);
           this.onReminder({
             ...event,
             reminderMinutes: minutesBefore
@@ -105,14 +163,24 @@ class Scheduler {
 
         if (job) {
           this.scheduledJobs.set(jobId, job);
-          console.log(`Scheduled reminder: ${event.title} at ${reminderTime.toLocaleString()} (${minutesBefore} min before)`);
+          console.log(`✓ Scheduled reminder: ${event.title} at ${reminderTime.toLocaleString()} (${minutesBefore} min before) [Job ID: ${jobId}]`);
         } else {
-          console.error(`Failed to schedule reminder for ${event.title} at ${reminderTime.toLocaleString()}`);
+          console.error(`✗ Failed to schedule reminder for ${event.title} at ${reminderTime.toLocaleString()}`);
         }
       }
     }
 
-    console.log(`Scheduled ${this.scheduledJobs.size} reminders and ${this.previewJobs.size} previews`);
+    console.log(`=== RESCHEDULE ALL - Complete ===`);
+    console.log(`✓ Scheduled ${this.scheduledJobs.size} reminders and ${this.previewJobs.size} previews for ${this.events.length} events`);
+    
+    // Log details of scheduled jobs for debugging
+    if (this.scheduledJobs.size > 0) {
+      console.log('Scheduled reminder jobs:');
+      for (const [jobId, job] of this.scheduledJobs.entries()) {
+        const nextInvocation = job.nextInvocation();
+        console.log(`  - ${jobId}: ${nextInvocation ? nextInvocation.toString() : 'no next invocation'}`);
+      }
+    }
   }
 
   /**
@@ -153,6 +221,7 @@ class Scheduler {
     // Cancel any existing snooze for this event
     const existingJob = this.snoozedJobs.get(snoozeId);
     if (existingJob) {
+      console.log(`Canceling existing snooze for: ${event.title}`);
       existingJob.cancel();
       this.snoozedJobs.delete(snoozeId);
     }
@@ -160,7 +229,7 @@ class Scheduler {
     // Schedule a new reminder
     const snoozeTime = new Date(Date.now() + minutes * 60 * 1000);
     const job = schedule.scheduleJob(snoozeTime, () => {
-      console.log(`Snooze expired for: ${event.title}`);
+      console.log(`🔔 Snooze expired for: ${event.title} [Snooze ID: ${snoozeId}]`);
       this.snoozedJobs.delete(snoozeId);
       this.onReminder({
         ...event,
@@ -171,11 +240,43 @@ class Scheduler {
 
     if (job) {
       this.snoozedJobs.set(snoozeId, job);
-      console.log(`Snoozed: ${event.title} for ${minutes} minutes until ${snoozeTime.toLocaleString()}`);
+      console.log(`✓ Snoozed: ${event.title} for ${minutes} minutes until ${snoozeTime.toLocaleString()} [Snooze ID: ${snoozeId}]`);
       return true;
     } else {
-      console.error(`Failed to schedule snooze for ${event.title}`);
+      console.error(`✗ Failed to schedule snooze for ${event.title}`);
       return false;
+    }
+  }
+
+  /**
+   * Clean up any stale job references (jobs that have already executed)
+   */
+  cleanupStaleJobs() {
+    // Clean up scheduled jobs
+    for (const [jobId, job] of this.scheduledJobs.entries()) {
+      const nextInvocation = job.nextInvocation();
+      if (!nextInvocation) {
+        console.log(`Cleaning up stale scheduled job: ${jobId}`);
+        this.scheduledJobs.delete(jobId);
+      }
+    }
+    
+    // Clean up preview jobs
+    for (const [jobId, job] of this.previewJobs.entries()) {
+      const nextInvocation = job.nextInvocation();
+      if (!nextInvocation) {
+        console.log(`Cleaning up stale preview job: ${jobId}`);
+        this.previewJobs.delete(jobId);
+      }
+    }
+    
+    // Clean up snoozed jobs
+    for (const [jobId, job] of this.snoozedJobs.entries()) {
+      const nextInvocation = job.nextInvocation();
+      if (!nextInvocation) {
+        console.log(`Cleaning up stale snoozed job: ${jobId}`);
+        this.snoozedJobs.delete(jobId);
+      }
     }
   }
 
@@ -183,6 +284,7 @@ class Scheduler {
    * Cancel all scheduled jobs
    */
   cancelAll() {
+    console.log('Canceling all jobs...');
     for (const job of this.scheduledJobs.values()) {
       job.cancel();
     }
@@ -197,6 +299,7 @@ class Scheduler {
       job.cancel();
     }
     this.snoozedJobs.clear();
+    console.log('All jobs canceled');
   }
 }
 
