@@ -43,6 +43,9 @@ let themeManager = null;
 // All calendar events
 let allEvents = [];
 
+// Track currently displayed event
+let currentlyDisplayedEvent = null;
+
 // Sync state tracking
 let syncState = {
   lastSyncTime: null,
@@ -157,6 +160,9 @@ function createSettingsWindow() {
  * Create the full-screen blocking window
  */
 function createBlockingWindow(event) {
+  // Track the currently displayed event
+  currentlyDisplayedEvent = event;
+  
   // If already showing a blocking window, update it
   if (blockingWindow && !blockingWindow.isDestroyed()) {
     blockingWindow.webContents.send('update-event', buildReminderPayload(event));
@@ -235,6 +241,9 @@ function closeBlockingWindow() {
       blockingWindow.destroy();
       blockingWindow = null;
       
+      // Clear the currently displayed event
+      currentlyDisplayedEvent = null;
+      
       logger.info('Blocking window closed successfully');
       console.log('✓ Blocking window closed successfully');
     } catch (error) {
@@ -243,10 +252,12 @@ function closeBlockingWindow() {
       
       // Force null even if destroy failed
       blockingWindow = null;
+      currentlyDisplayedEvent = null;
     }
   } else {
     logger.info('No blocking window to close (already closed or destroyed)');
     console.log('No blocking window to close');
+    currentlyDisplayedEvent = null;
   }
 }
 
@@ -295,6 +306,39 @@ async function syncCalendars(attemptNumber = 0) {
       console.log(`   Start: ${eventStart.toLocaleString()}`);
       console.log(`   Source: ${event.source}`);
     });
+
+    // Check if currently displayed event needs to be updated
+    if (currentlyDisplayedEvent && blockingWindow && !blockingWindow.isDestroyed()) {
+      const updatedEvent = allEvents.find(e => e.id === currentlyDisplayedEvent.id);
+      
+      if (updatedEvent) {
+        // Check if the event time has changed
+        const oldStart = new Date(currentlyDisplayedEvent.start).getTime();
+        const newStart = new Date(updatedEvent.start).getTime();
+        
+        if (oldStart !== newStart) {
+          console.log(`📅 Event "${updatedEvent.title}" was rescheduled:`);
+          console.log(`   Old time: ${new Date(oldStart).toLocaleString()}`);
+          console.log(`   New time: ${new Date(newStart).toLocaleString()}`);
+          console.log('   Updating blocking window...');
+          
+          // Check if new time is in the past
+          if (new Date(newStart) <= new Date()) {
+            console.log('   ⚠ New time is in the past - closing blocking window');
+            closeBlockingWindow();
+          } else {
+            // Update the displayed event
+            currentlyDisplayedEvent = updatedEvent;
+            blockingWindow.webContents.send('update-event', buildReminderPayload(updatedEvent));
+            console.log('   ✓ Blocking window updated with new time');
+          }
+        }
+      } else {
+        // Event was deleted - close the blocking window
+        console.log(`⚠ Currently displayed event "${currentlyDisplayedEvent.title}" was deleted - closing window`);
+        closeBlockingWindow();
+      }
+    }
 
     // Update scheduler with new events
     if (scheduler) {
@@ -385,6 +429,15 @@ async function initialize() {
         console.log('Reminders paused, skipping alert');
         return;
       }
+      
+      // Check if event is still in the future (could have been moved to the past)
+      const eventStart = new Date(event.start);
+      const now = new Date();
+      if (eventStart <= now) {
+        console.log(`⚠ Skipping reminder for "${event.title}" - event was moved to the past (${eventStart.toLocaleString()})`);
+        return;
+      }
+      
       createBlockingWindow(event);
     },
     // Preview notification callback
@@ -392,6 +445,14 @@ async function initialize() {
       // Check if reminders are paused
       const pausedUntil = store.get('pausedUntil');
       if (pausedUntil && new Date(pausedUntil) > new Date()) {
+        return;
+      }
+      
+      // Check if event is still in the future (could have been moved to the past)
+      const eventStart = new Date(event.start);
+      const now = new Date();
+      if (eventStart <= now) {
+        console.log(`⚠ Skipping preview for "${event.title}" - event was moved to the past (${eventStart.toLocaleString()})`);
         return;
       }
       
