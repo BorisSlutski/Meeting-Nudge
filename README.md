@@ -47,27 +47,44 @@ A cross-platform desktop app that blocks your entire screen before meetings, mak
 - Node.js 18+ (check with `node --version`)
 - npm (comes with Node.js)
 
-#### Setup Steps
+#### Install & Run
+
+```bash
+# Clone
+git clone https://github.com/BorisSlutski/Meeting-Nudge.git
+cd Meeting-Nudge
+
+# Install dependencies
+npm install
+
+# Run in development mode (hot reload)
+npm run dev
+```
+
+#### Build & Package
+
+```bash
+# Production build
+npm run build
+
+# Package as macOS .app
+npm run build:mac
+
+# Install to Applications
+cp -R "dist/mac-arm64/Meeting Nudge.app" /Applications/
+```
+
+#### Setup Steps (manual)
 
 ```bash
 # ==========================================================================
-# [STEP 1] - Navigate to project directory
-# ==========================================================================
-cd meeting-nudge
-
-# ==========================================================================
-# [STEP 2] - Install Node.js dependencies
-# ==========================================================================
-npm install
-
-# ==========================================================================
-# [STEP 3] - Set up OAuth credentials (see detailed instructions below)
+# [STEP 1] - Set up OAuth credentials (see detailed instructions below)
 # ==========================================================================
 export GOOGLE_CLIENT_ID="your-google-client-id"
 export GOOGLE_CLIENT_SECRET="your-google-client-secret"
 
 # ==========================================================================
-# [STEP 4] - Run the application
+# [STEP 2] - Run the application
 # ==========================================================================
 npm start
 ```
