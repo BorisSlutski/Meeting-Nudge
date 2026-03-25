@@ -4,12 +4,14 @@ const schedule = require('node-schedule');
  * Scheduler for meeting reminders
  */
 class Scheduler {
-  constructor(store, onReminder, onPreviewNotification) {
+  constructor(store, onReminder, onPreviewNotification, onPrepWindow) {
     this.store = store;
     this.onReminder = onReminder;
     this.onPreviewNotification = onPreviewNotification; // Optional preview callback
+    this.onPrepWindow = onPrepWindow; // Optional prep window callback
     this.scheduledJobs = new Map();
     this.previewJobs = new Map(); // Track preview notification jobs
+    this.prepJobs = new Map(); // Track prep window jobs
     this.snoozedJobs = new Map(); // Track snoozed reminders
     this.events = [];
   }
@@ -64,7 +66,22 @@ class Scheduler {
       }
       this.previewJobs.delete(jobId);
     }
-    
+
+    // Process prepJobs
+    const prepJobIds = Array.from(this.prepJobs.keys());
+    for (const jobId of prepJobIds) {
+      const job = this.prepJobs.get(jobId);
+      if (job) {
+        try {
+          job.cancel();
+          console.log(`✓ Canceled prep job: ${jobId}`);
+        } catch (error) {
+          console.error(`✗ Error canceling prep job ${jobId}:`, error);
+        }
+      }
+      this.prepJobs.delete(jobId);
+    }
+
     // Process snoozedJobs
     const snoozedJobIds = Array.from(this.snoozedJobs.keys());
     for (const jobId of snoozedJobIds) {
@@ -135,6 +152,30 @@ class Scheduler {
             if (previewJob) {
               this.previewJobs.set(previewId, previewJob);
               console.log(`Scheduled preview: ${event.title} at ${previewTime.toLocaleString()}`);
+            }
+          }
+        }
+
+        // Schedule prep window if enabled
+        const prepEnabled = this.store.get('prepWindowEnabled') !== false;
+        if (prepEnabled && this.onPrepWindow) {
+          const prepLeadMinutes = this.store.get('prepWindowLeadMinutes') || 2;
+          const prepTime = new Date(reminderTime.getTime() - prepLeadMinutes * 60 * 1000);
+
+          if (prepTime > now) {
+            const prepJobId = `prep-${event.id}-${minutesBefore}`;
+            if (this.prepJobs.has(prepJobId)) {
+              this.prepJobs.get(prepJobId).cancel();
+              this.prepJobs.delete(prepJobId);
+            }
+            const prepJob = schedule.scheduleJob(prepTime, () => {
+              console.log(`⏱ Prep window: ${event.title} (${minutesBefore} min reminder)`);
+              this.prepJobs.delete(prepJobId);
+              this.onPrepWindow({ ...event, reminderMinutes: minutesBefore });
+            });
+            if (prepJob) {
+              this.prepJobs.set(prepJobId, prepJob);
+              console.log(`Scheduled prep window: ${event.title} at ${prepTime.toLocaleString()}`);
             }
           }
         }
@@ -269,7 +310,16 @@ class Scheduler {
         this.previewJobs.delete(jobId);
       }
     }
-    
+
+    // Clean up prep jobs
+    for (const [jobId, job] of this.prepJobs.entries()) {
+      const nextInvocation = job.nextInvocation();
+      if (!nextInvocation) {
+        console.log(`Cleaning up stale prep job: ${jobId}`);
+        this.prepJobs.delete(jobId);
+      }
+    }
+
     // Clean up snoozed jobs
     for (const [jobId, job] of this.snoozedJobs.entries()) {
       const nextInvocation = job.nextInvocation();
@@ -294,7 +344,12 @@ class Scheduler {
       job.cancel();
     }
     this.previewJobs.clear();
-    
+
+    for (const job of this.prepJobs.values()) {
+      job.cancel();
+    }
+    this.prepJobs.clear();
+
     for (const job of this.snoozedJobs.values()) {
       job.cancel();
     }
