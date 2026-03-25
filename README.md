@@ -19,22 +19,35 @@ A cross-platform desktop app that blocks your entire screen before meetings, mak
 ## Features
 
 - **Full-Screen Blocking** - Unmissable alerts that cover your entire screen
+- **Meeting Prep Window** - A gentle floating card appears before the full-screen alert so you can wrap up what you're doing
 - **Google Calendar Support** - Connect your Google Calendar
 - **Multiple Meeting Links** - Shows separate buttons for each meeting link (Zoom, Meet, Teams, etc.) when multiple options are available
 - **One-Click Join** - Automatically detects Zoom, Meet, Teams, and 10+ other video conferencing links
 - **Multiple Reminders** - Get reminded 10, 5, and 1 minute before meetings
 - **Snooze** - Need 5 more minutes? Just snooze
 - **Audio Alerts** - Can't miss the sound either
+- **Auto-Start on Login** - Runs automatically when your Mac starts, no terminal needed
 - **Cross-Platform** - Works on macOS, Windows, and Linux
 
 ## Installation
 
-### Prerequisites
+### Option 1: Download (Recommended)
+
+1. Go to the [Releases page](../../releases/latest)
+2. Download `Meeting-Nudge-x.x.x.dmg` (macOS), `.exe` (Windows), or `.AppImage` (Linux)
+3. **macOS:** Open the `.dmg`, drag **Meeting Nudge** to your **Applications** folder, then double-click to launch
+4. The app appears in your menu bar and auto-starts on login — no terminal required
+
+> **macOS security note:** If you see "unidentified developer", right-click → Open to bypass (one-time only).
+
+### Option 2: Run from Source
+
+#### Prerequisites
 
 - Node.js 18+ (check with `node --version`)
 - npm (comes with Node.js)
 
-### Setup Steps
+#### Setup Steps
 
 ```bash
 # ==========================================================================

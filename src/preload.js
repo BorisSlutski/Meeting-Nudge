@@ -39,11 +39,24 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLogPath: () => ipcRenderer.invoke('get-log-path'),
   openLogFile: () => ipcRenderer.invoke('open-log-file'),
 
+  // Login item (Open at Login)
+  getLoginItemSettings: () => ipcRenderer.invoke('get-login-item-settings'),
+  setLoginItemSettings: (openAtLogin) => ipcRenderer.invoke('set-login-item-settings', { openAtLogin }),
+
+  // Prep window actions
+  closePrepWindow: () => ipcRenderer.invoke('close-prep-window'),
+  joinMeetingFromPrep: (url) => ipcRenderer.invoke('join-meeting-from-prep', url),
+
   // Event listeners for blocking window
   onShowEvent: (callback) => {
     ipcRenderer.on('show-event', (event, data) => callback(data));
   },
   onUpdateEvent: (callback) => {
     ipcRenderer.on('update-event', (event, data) => callback(data));
+  },
+
+  // Event listener for prep window
+  onShowPrepEvent: (callback) => {
+    ipcRenderer.on('show-prep-event', (event, data) => callback(data));
   }
 });

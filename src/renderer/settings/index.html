@@ -144,6 +144,16 @@
         </h2>
         <div class="collapsible-content">
           <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="open-at-login">
+              <span>Open at Login</span>
+            </label>
+            <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
+              Automatically start Meeting Nudge when you log in to your Mac
+            </p>
+          </div>
+
+          <div class="setting-item">
             <label>Theme:</label>
             <div class="theme-selector">
               <button class="theme-option" data-theme="light">
@@ -277,6 +287,36 @@
           </div>
 
           <span class="inline-status" id="calendar-status"></span>
+        </div>
+      </section>
+
+      <!-- Meeting Prep Window -->
+      <section class="card collapsible collapsed" id="prep-section">
+        <h2 id="prep-header" class="collapsible-header">
+          ⏱️ Meeting Prep
+          <span class="toggle-icon">▼</span>
+        </h2>
+        <div class="collapsible-content">
+          <div class="setting-item">
+            <label class="checkbox-label">
+              <input type="checkbox" id="prep-window-enabled" checked>
+              <span>Show prep window before meetings</span>
+            </label>
+            <p class="setting-note" style="margin-top: 4px; font-size: 13px;">
+              A small floating card appears before the full-screen alert so you can wrap up what you're doing
+            </p>
+          </div>
+
+          <div class="setting-item" id="prep-lead-time-item">
+            <label for="prep-lead-minutes">Show prep window this many minutes before the alert:</label>
+            <select id="prep-lead-minutes">
+              <option value="1">1 minute early</option>
+              <option value="2" selected>2 minutes early</option>
+              <option value="3">3 minutes early</option>
+              <option value="5">5 minutes early</option>
+              <option value="10">10 minutes early</option>
+            </select>
+          </div>
         </div>
       </section>
 

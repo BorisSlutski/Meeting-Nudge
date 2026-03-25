@@ -25,13 +25,16 @@ const store = new Store({
     googleConnected: false,
     pausedUntil: null,
     previewNotificationsEnabled: true,
-    includeFocusTime: true // Include focus time events by default
+    includeFocusTime: true, // Include focus time events by default
+    prepWindowEnabled: true, // Show prep window before full-screen alert
+    prepWindowLeadMinutes: 2 // Minutes before blocking alert to show prep window
   }
 });
 
 // Global references
 let mainWindow = null;
 let blockingWindow = null;
+let prepWindow = null;
 let settingsWindow = null;
 let trayManager = null;
 let scheduler = null;
@@ -109,6 +112,19 @@ function sanitizeSettings(settings) {
   // Validate includeFocusTime (must be boolean)
   if (typeof settings?.includeFocusTime === 'boolean') {
     sanitized.includeFocusTime = settings.includeFocusTime;
+  }
+
+  // Validate prepWindowEnabled (must be boolean)
+  if (typeof settings?.prepWindowEnabled === 'boolean') {
+    sanitized.prepWindowEnabled = settings.prepWindowEnabled;
+  }
+
+  // Validate prepWindowLeadMinutes (must be integer 1-10)
+  if (settings?.prepWindowLeadMinutes !== undefined) {
+    const lead = Number.parseInt(settings.prepWindowLeadMinutes, 10);
+    if (!isNaN(lead) && isFinite(lead) && lead >= 1 && lead <= 10) {
+      sanitized.prepWindowLeadMinutes = lead;
+    }
   }
 
   // Validate pausedUntil (must be valid ISO date string or null)
@@ -258,6 +274,62 @@ function closeBlockingWindow() {
     logger.info('No blocking window to close (already closed or destroyed)');
     console.log('No blocking window to close');
     currentlyDisplayedEvent = null;
+  }
+}
+
+/**
+ * Create the small floating prep window
+ */
+function createPrepWindow(event) {
+  // Close any existing prep window
+  closePrepWindow();
+
+  const { screen } = require('electron');
+  const { width } = screen.getPrimaryDisplay().workAreaSize;
+
+  prepWindow = new BrowserWindow({
+    width: 380,
+    height: 200,
+    x: width - 400,
+    y: 20,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    movable: true,
+    skipTaskbar: true,
+    webPreferences: {
+      preload: path.join(__dirname, '..', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      additionalArguments: [`--theme=${themeManager ? themeManager.getCurrentTheme() : 'light'}`]
+    }
+  });
+
+  prepWindow.loadFile(path.join(__dirname, '..', 'renderer', 'prep', 'index.html'));
+
+  prepWindow.webContents.on('did-finish-load', () => {
+    if (prepWindow && !prepWindow.isDestroyed()) {
+      prepWindow.webContents.send('show-prep-event', event);
+      prepWindow.show();
+    }
+  });
+
+  prepWindow.on('closed', () => {
+    prepWindow = null;
+  });
+}
+
+/**
+ * Close the prep window
+ */
+function closePrepWindow() {
+  if (prepWindow && !prepWindow.isDestroyed()) {
+    try {
+      prepWindow.destroy();
+    } catch (error) {
+      console.error('Error closing prep window:', error);
+    }
+    prepWindow = null;
   }
 }
 
@@ -418,7 +490,7 @@ async function initialize() {
   // Initialize calendar integrations
   googleCalendar = new GoogleCalendar(store);
 
-  // Initialize scheduler with preview notification handler
+  // Initialize scheduler with preview notification and prep window handlers
   scheduler = new Scheduler(
     store,
     // Main reminder callback
@@ -429,7 +501,7 @@ async function initialize() {
         console.log('Reminders paused, skipping alert');
         return;
       }
-      
+
       // Check if event is still in the future (could have been moved to the past)
       const eventStart = new Date(event.start);
       const now = new Date();
@@ -437,7 +509,9 @@ async function initialize() {
         console.log(`⚠ Skipping reminder for "${event.title}" - event was moved to the past (${eventStart.toLocaleString()})`);
         return;
       }
-      
+
+      // Close prep window if it's showing for this event
+      closePrepWindow();
       createBlockingWindow(event);
     },
     // Preview notification callback
@@ -447,7 +521,7 @@ async function initialize() {
       if (pausedUntil && new Date(pausedUntil) > new Date()) {
         return;
       }
-      
+
       // Check if event is still in the future (could have been moved to the past)
       const eventStart = new Date(event.start);
       const now = new Date();
@@ -455,7 +529,7 @@ async function initialize() {
         console.log(`⚠ Skipping preview for "${event.title}" - event was moved to the past (${eventStart.toLocaleString()})`);
         return;
       }
-      
+
       // Show native notification preview
       const { Notification } = require('electron');
       if (Notification.isSupported()) {
@@ -466,15 +540,32 @@ async function initialize() {
           urgency: 'normal',
           timeoutType: 'default'
         });
-        
+
         // Click notification to show full-screen immediately
         notification.on('click', () => {
           createBlockingWindow(event);
         });
-        
+
         notification.show();
         console.log(`Preview notification shown for: ${event.title}`);
       }
+    },
+    // Prep window callback
+    (event) => {
+      // Check if reminders are paused
+      const pausedUntil = store.get('pausedUntil');
+      if (pausedUntil && new Date(pausedUntil) > new Date()) {
+        return;
+      }
+
+      // Check if event is still in the future
+      const eventStart = new Date(event.start);
+      const now = new Date();
+      if (eventStart <= now) {
+        return;
+      }
+
+      createPrepWindow(event);
     }
   );
 
@@ -522,6 +613,12 @@ app.whenReady().then(async () => {
   // Initialize theme manager
   themeManager = new ThemeManager(store);
   themeManager.applyTheme();
+
+  // Set login item on first launch so app auto-starts on login
+  if (!store.has('loginItemSet')) {
+    app.setLoginItemSettings({ openAtLogin: true, openAsHidden: true });
+    store.set('loginItemSet', true);
+  }
 
   await initialize();
 
@@ -787,6 +884,31 @@ ipcMain.handle('open-external', (event, url) => {
     return { success: false, error: 'Invalid URL' };
   }
   shell.openExternal(url);
+  return { success: true };
+});
+
+// Login item (Open at Login) handlers
+ipcMain.handle('get-login-item-settings', () => {
+  return app.getLoginItemSettings().openAtLogin;
+});
+
+ipcMain.handle('set-login-item-settings', (event, { openAtLogin }) => {
+  app.setLoginItemSettings({ openAtLogin: !!openAtLogin, openAsHidden: !!openAtLogin });
+  return { success: true };
+});
+
+// Prep window handlers
+ipcMain.handle('close-prep-window', () => {
+  closePrepWindow();
+  return { success: true };
+});
+
+ipcMain.handle('join-meeting-from-prep', (event, url) => {
+  if (!isSafeExternalUrl(url, MEETING_HOST_ALLOWLIST)) {
+    return { success: false, error: 'Invalid URL' };
+  }
+  shell.openExternal(url);
+  closePrepWindow();
   return { success: true };
 });
 
