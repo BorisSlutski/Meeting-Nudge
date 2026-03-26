@@ -44,11 +44,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getLoginItemSettings: () => ipcRenderer.invoke('get-login-item-settings'),
   setLoginItemSettings: (openAtLogin) => ipcRenderer.invoke('set-login-item-settings', { openAtLogin }),
 
-  // Prep window actions
-  closePrepWindow: () => ipcRenderer.invoke('close-prep-window'),
-  resizePrepWindow: (height) => ipcRenderer.invoke('resize-prep-window', height),
-  joinMeetingFromPrep: (url) => ipcRenderer.invoke('join-meeting-from-prep', url),
-
   // Event listeners for blocking window
   onShowEvent: (callback) => {
     ipcRenderer.on('show-event', (event, data) => callback(data));
@@ -57,8 +52,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-event', (event, data) => callback(data));
   },
 
-  // Event listener for prep window
-  onShowPrepEvent: (callback) => {
-    ipcRenderer.on('show-prep-event', (event, data) => callback(data));
-  }
+
 });
