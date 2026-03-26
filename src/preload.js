@@ -24,6 +24,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Blocking window actions
   acknowledgeMeeting: () => ipcRenderer.invoke('acknowledge-meeting'),
   snoozeMeeting: (data) => ipcRenderer.invoke('snooze-meeting', data),
+  cancelSnooze: (eventId) => ipcRenderer.invoke('cancel-snooze', eventId),
   joinMeeting: (url) => ipcRenderer.invoke('join-meeting', url),
 
   // External links
@@ -45,6 +46,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Prep window actions
   closePrepWindow: () => ipcRenderer.invoke('close-prep-window'),
+  resizePrepWindow: (height) => ipcRenderer.invoke('resize-prep-window', height),
   joinMeetingFromPrep: (url) => ipcRenderer.invoke('join-meeting-from-prep', url),
 
   // Event listeners for blocking window

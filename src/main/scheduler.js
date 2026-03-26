@@ -12,7 +12,7 @@ class Scheduler {
     this.scheduledJobs = new Map();
     this.previewJobs = new Map(); // Track preview notification jobs
     this.prepJobs = new Map(); // Track prep window jobs
-    this.snoozedJobs = new Map(); // Track snoozed reminders
+    this.snoozedJobs = new Map(); // Track snoozed reminders: eventId → { job, event }
     this.events = [];
   }
 
@@ -260,10 +260,10 @@ class Scheduler {
     const snoozeId = `snooze-${event.id}`;
     
     // Cancel any existing snooze for this event
-    const existingJob = this.snoozedJobs.get(snoozeId);
-    if (existingJob) {
+    const existingEntry = this.snoozedJobs.get(snoozeId);
+    if (existingEntry) {
       console.log(`Canceling existing snooze for: ${event.title}`);
-      existingJob.cancel();
+      existingEntry.job.cancel();
       this.snoozedJobs.delete(snoozeId);
     }
 
@@ -280,13 +280,38 @@ class Scheduler {
     });
 
     if (job) {
-      this.snoozedJobs.set(snoozeId, job);
+      this.snoozedJobs.set(snoozeId, { job, event });
       console.log(`✓ Snoozed: ${event.title} for ${minutes} minutes until ${snoozeTime.toLocaleString()} [Snooze ID: ${snoozeId}]`);
       return true;
     } else {
       console.error(`✗ Failed to schedule snooze for ${event.title}`);
       return false;
     }
+  }
+
+  /**
+   * Cancel an active snooze for an event
+   * @param {string} eventId
+   * @returns {boolean}
+   */
+  cancelSnooze(eventId) {
+    const snoozeId = `snooze-${eventId}`;
+    const entry = this.snoozedJobs.get(snoozeId);
+    if (entry) {
+      entry.job.cancel();
+      this.snoozedJobs.delete(snoozeId);
+      console.log(`✓ Cancelled snooze for event: ${eventId}`);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Get all currently snoozed events
+   * @returns {Array} Array of event objects that are currently snoozed
+   */
+  getSnoozedEvents() {
+    return Array.from(this.snoozedJobs.values()).map(entry => entry.event);
   }
 
   /**
@@ -321,8 +346,8 @@ class Scheduler {
     }
 
     // Clean up snoozed jobs
-    for (const [jobId, job] of this.snoozedJobs.entries()) {
-      const nextInvocation = job.nextInvocation();
+    for (const [jobId, entry] of this.snoozedJobs.entries()) {
+      const nextInvocation = entry.job.nextInvocation();
       if (!nextInvocation) {
         console.log(`Cleaning up stale snoozed job: ${jobId}`);
         this.snoozedJobs.delete(jobId);
@@ -350,8 +375,8 @@ class Scheduler {
     }
     this.prepJobs.clear();
 
-    for (const job of this.snoozedJobs.values()) {
-      job.cancel();
+    for (const entry of this.snoozedJobs.values()) {
+      entry.job.cancel();
     }
     this.snoozedJobs.clear();
     console.log('All jobs canceled');

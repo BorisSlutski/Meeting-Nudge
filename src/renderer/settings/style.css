@@ -598,3 +598,58 @@ footer {
 .theme-icon {
   font-size: 32px;
 }
+
+/* Custom reminder time tags */
+.custom-reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.custom-reminder-row input[type="number"] {
+  padding: 4px 8px;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.btn-small {
+  padding: 4px 10px;
+  font-size: 13px;
+}
+
+.custom-reminder-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.custom-reminder-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: var(--accent);
+  color: white;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.custom-reminder-tag-remove {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+  opacity: 0.8;
+}
+
+.custom-reminder-tag-remove:hover {
+  opacity: 1;
+}

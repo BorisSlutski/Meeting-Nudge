@@ -14,6 +14,8 @@ class TrayManager {
     this.onQuit = onQuit;
     this.store = store;
     this.upcomingEvents = [];
+    this.snoozedEvents = [];
+    this.onCancelSnooze = null;
     this.syncError = null;
     this.lastSyncTime = null;
     
@@ -62,9 +64,9 @@ class TrayManager {
     
     this.updateMenu();
 
-    // Left click shows upcoming events on macOS
+    // Left click shows the context menu (settings window accessible via menu item)
     this.tray.on('click', () => {
-      this.onSettings();
+      this.tray.popUpContextMenu();
     });
   }
 
@@ -137,6 +139,22 @@ class TrayManager {
           this.updateMenu();
         }
       });
+      menuItems.push({ type: 'separator' });
+    }
+
+    // Active snoozes section
+    if (this.snoozedEvents.length > 0) {
+      menuItems.push({ label: 'Snoozed', enabled: false });
+      for (const event of this.snoozedEvents) {
+        menuItems.push({
+          label: `Cancel snooze: ${event.title}`,
+          click: () => {
+            if (this.onCancelSnooze) {
+              this.onCancelSnooze(event.id);
+            }
+          }
+        });
+      }
       menuItems.push({ type: 'separator' });
     }
 
@@ -219,6 +237,17 @@ class TrayManager {
     this.upcomingEvents = events;
     this.syncError = null; // Clear error on successful sync
     this.lastSyncTime = new Date();
+    this.updateMenu();
+  }
+
+  /**
+   * Update snoozed events list and refresh menu
+   * @param {Array} events - Array of snoozed event objects
+   * @param {Function} onCancelSnooze - Callback(eventId) to cancel a snooze
+   */
+  updateSnoozedEvents(events, onCancelSnooze) {
+    this.snoozedEvents = events || [];
+    if (onCancelSnooze) this.onCancelSnooze = onCancelSnooze;
     this.updateMenu();
   }
 

@@ -84,21 +84,34 @@ html, body {
   flex: 1;
 }
 
-.close-btn {
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+
+.close-btn,
+.collapse-btn {
   background: none;
   border: none;
   color: var(--text-secondary);
   cursor: pointer;
   font-size: 14px;
-  padding: 2px 4px;
+  padding: 2px 6px;
   border-radius: 4px;
   flex-shrink: 0;
   line-height: 1;
 }
 
-.close-btn:hover {
+.close-btn:hover,
+.collapse-btn:hover {
   background: var(--surface);
   color: var(--text);
+}
+
+.card.collapsed .card-body {
+  display: none;
 }
 
 .meeting-title {
