@@ -64,10 +64,6 @@ class TrayManager {
     
     this.updateMenu();
 
-    // Left click shows the context menu (settings window accessible via menu item)
-    this.tray.on('click', () => {
-      this.tray.popUpContextMenu();
-    });
   }
 
   /**
