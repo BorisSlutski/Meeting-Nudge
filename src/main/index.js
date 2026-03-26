@@ -627,12 +627,10 @@ app.whenReady().then(async () => {
 
   await initialize();
 
-  // macOS: re-create window when dock icon clicked
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createSettingsWindow();
-    }
-  });
+  // macOS: hide dock icon — this is a tray-only app
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
 });
 
 app.on('before-quit', () => {
@@ -651,7 +649,10 @@ if (!gotLock) {
   app.quit();
 } else {
   app.on('second-instance', () => {
-    createSettingsWindow();
+    // Already running — just pop up the tray menu
+    if (trayManager) {
+      trayManager.tray.popUpContextMenu();
+    }
   });
 }
 
