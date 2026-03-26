@@ -24,9 +24,6 @@ const syncStatus = document.getElementById('sync-status');
 // Open at Login
 const openAtLogin = document.getElementById('open-at-login');
 
-// Prep window elements
-const prepWindowEnabled = document.getElementById('prep-window-enabled');
-const prepLeadMinutes = document.getElementById('prep-lead-minutes');
 
 // Theme elements
 const themeOptions = document.querySelectorAll('.theme-option');
@@ -166,13 +163,6 @@ async function loadSettings() {
     openAtLogin.checked = !!isOpenAtLogin;
   }
 
-  // Load prep window settings
-  if (prepWindowEnabled) {
-    prepWindowEnabled.checked = settings.prepWindowEnabled !== false;
-  }
-  if (prepLeadMinutes) {
-    prepLeadMinutes.value = String(settings.prepWindowLeadMinutes || 2);
-  }
 
   await loadOAuthConfig();
   
@@ -305,8 +295,7 @@ async function saveSettings() {
     soundVolume: parseInt(soundVolume?.value, 10) || 70,
     previewNotificationsEnabled: previewNotificationsEnabled?.checked !== false,
     includeFocusTime: includeFocusTime?.checked !== false,
-    prepWindowEnabled: prepWindowEnabled?.checked !== false,
-    prepWindowLeadMinutes: parseInt(prepLeadMinutes?.value, 10) || 2
+
   };
   
   await window.electronAPI.saveSettings(newSettings);
@@ -566,13 +555,6 @@ if (openAtLogin) {
   });
 }
 
-// Prep window settings
-if (prepWindowEnabled) {
-  prepWindowEnabled.addEventListener('change', saveSettings);
-}
-if (prepLeadMinutes) {
-  prepLeadMinutes.addEventListener('change', saveSettings);
-}
 
 // Setup instructions toggle
 const setupHeader = document.getElementById('setup-header');
@@ -1023,14 +1005,6 @@ if (appearanceHeader && appearanceSection) {
   });
 }
 
-// Meeting Prep section toggle
-const prepHeader = document.getElementById('prep-header');
-const prepSection = document.getElementById('prep-section');
-if (prepHeader && prepSection) {
-  prepHeader.addEventListener('click', () => {
-    prepSection.classList.toggle('collapsed');
-  });
-}
 
 // Test & Debug section toggle
 const testHeader = document.getElementById('test-header');

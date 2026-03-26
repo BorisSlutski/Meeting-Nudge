@@ -26,15 +26,14 @@ const store = new Store({
     pausedUntil: null,
     previewNotificationsEnabled: true,
     includeFocusTime: true, // Include focus time events by default
-    prepWindowEnabled: true, // Show prep window before full-screen alert
-    prepWindowLeadMinutes: 2 // Minutes before blocking alert to show prep window
+
   }
 });
 
 // Global references
 let mainWindow = null;
 let blockingWindow = null;
-let prepWindow = null;
+
 let settingsWindow = null;
 let trayManager = null;
 let scheduler = null;
@@ -114,18 +113,6 @@ function sanitizeSettings(settings) {
     sanitized.includeFocusTime = settings.includeFocusTime;
   }
 
-  // Validate prepWindowEnabled (must be boolean)
-  if (typeof settings?.prepWindowEnabled === 'boolean') {
-    sanitized.prepWindowEnabled = settings.prepWindowEnabled;
-  }
-
-  // Validate prepWindowLeadMinutes (must be integer 1-10)
-  if (settings?.prepWindowLeadMinutes !== undefined) {
-    const lead = Number.parseInt(settings.prepWindowLeadMinutes, 10);
-    if (!isNaN(lead) && isFinite(lead) && lead >= 1 && lead <= 10) {
-      sanitized.prepWindowLeadMinutes = lead;
-    }
-  }
 
   // Validate pausedUntil (must be valid ISO date string or null)
   if (settings?.pausedUntil === null) {
@@ -282,61 +269,6 @@ function closeBlockingWindow() {
   }
 }
 
-/**
- * Create the small floating prep window
- */
-function createPrepWindow(event) {
-  // Close any existing prep window
-  closePrepWindow();
-
-  const { screen } = require('electron');
-  const { width } = screen.getPrimaryDisplay().workAreaSize;
-
-  prepWindow = new BrowserWindow({
-    width: 380,
-    height: 200,
-    x: width - 400,
-    y: 20,
-    frame: false,
-    alwaysOnTop: true,
-    resizable: false,
-    movable: true,
-    skipTaskbar: true,
-    webPreferences: {
-      preload: path.join(__dirname, '..', 'preload.js'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      additionalArguments: [`--theme=${themeManager ? themeManager.getCurrentTheme() : 'light'}`]
-    }
-  });
-
-  prepWindow.loadFile(path.join(__dirname, '..', 'renderer', 'prep', 'index.html'));
-
-  prepWindow.webContents.on('did-finish-load', () => {
-    if (prepWindow && !prepWindow.isDestroyed()) {
-      prepWindow.webContents.send('show-prep-event', event);
-      prepWindow.show();
-    }
-  });
-
-  prepWindow.on('closed', () => {
-    prepWindow = null;
-  });
-}
-
-/**
- * Close the prep window
- */
-function closePrepWindow() {
-  if (prepWindow && !prepWindow.isDestroyed()) {
-    try {
-      prepWindow.destroy();
-    } catch (error) {
-      console.error('Error closing prep window:', error);
-    }
-    prepWindow = null;
-  }
-}
 
 /**
  * Sync all calendars with retry logic
@@ -495,7 +427,7 @@ async function initialize() {
   // Initialize calendar integrations
   googleCalendar = new GoogleCalendar(store);
 
-  // Initialize scheduler with preview notification and prep window handlers
+  // Initialize scheduler with preview notification handler
   scheduler = new Scheduler(
     store,
     // Main reminder callback
@@ -515,8 +447,6 @@ async function initialize() {
         return;
       }
 
-      // Close prep window if it's showing for this event
-      closePrepWindow();
       createBlockingWindow(event);
     },
     // Preview notification callback
@@ -555,23 +485,6 @@ async function initialize() {
         console.log(`Preview notification shown for: ${event.title}`);
       }
     },
-    // Prep window callback
-    (event) => {
-      // Check if reminders are paused
-      const pausedUntil = store.get('pausedUntil');
-      if (pausedUntil && new Date(pausedUntil) > new Date()) {
-        return;
-      }
-
-      // Check if event is still in the future
-      const eventStart = new Date(event.start);
-      const now = new Date();
-      if (eventStart <= now) {
-        return;
-      }
-
-      createPrepWindow(event);
-    }
   );
 
   // Initialize tray
@@ -920,27 +833,6 @@ ipcMain.handle('set-login-item-settings', (event, { openAtLogin }) => {
   return { success: true };
 });
 
-// Prep window handlers
-ipcMain.handle('close-prep-window', () => {
-  closePrepWindow();
-  return { success: true };
-});
-
-ipcMain.handle('resize-prep-window', (event, height) => {
-  if (prepWindow && !prepWindow.isDestroyed()) {
-    prepWindow.setSize(380, Math.max(36, parseInt(height, 10) || 36));
-  }
-  return { success: true };
-});
-
-ipcMain.handle('join-meeting-from-prep', (event, url) => {
-  if (!isSafeExternalUrl(url, MEETING_HOST_ALLOWLIST)) {
-    return { success: false, error: 'Invalid URL' };
-  }
-  shell.openExternal(url);
-  closePrepWindow();
-  return { success: true };
-});
 
 // Test Mode: Generate fake events for testing
 ipcMain.handle('generate-test-events', () => {
