@@ -44,6 +44,46 @@ const calendarsList = document.getElementById('calendars-list');
 const calendarStatus = document.getElementById('calendar-status');
 const includeFocusTime = document.getElementById('include-focus-time');
 
+// Custom reminder times (values outside the fixed 10/5/1 set)
+const FIXED_REMINDER_TIMES = [10, 5, 1];
+let customReminderTimes = [];
+
+const customReminderInput = document.getElementById('custom-reminder-input');
+const addCustomReminderBtn = document.getElementById('add-custom-reminder-btn');
+const customReminderTags = document.getElementById('custom-reminder-tags');
+
+function renderCustomReminderTags() {
+  customReminderTags.innerHTML = '';
+  customReminderTimes.forEach(minutes => {
+    const tag = document.createElement('span');
+    tag.className = 'custom-reminder-tag';
+    tag.textContent = `${minutes} min`;
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'custom-reminder-tag-remove';
+    removeBtn.textContent = '×';
+    removeBtn.addEventListener('click', () => {
+      customReminderTimes = customReminderTimes.filter(m => m !== minutes);
+      renderCustomReminderTags();
+    });
+    tag.appendChild(removeBtn);
+    customReminderTags.appendChild(tag);
+  });
+}
+
+if (addCustomReminderBtn) {
+  addCustomReminderBtn.addEventListener('click', () => {
+    const val = parseInt(customReminderInput.value, 10);
+    if (!val || val < 1 || val > 120) return;
+    if (FIXED_REMINDER_TIMES.includes(val) || customReminderTimes.includes(val)) return;
+    customReminderTimes.push(val);
+    customReminderInput.value = '';
+    renderCustomReminderTags();
+  });
+  customReminderInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addCustomReminderBtn.click();
+  });
+}
+
 // Current settings
 let settings = {};
 let pauseUpdateInterval = null;
@@ -233,10 +273,12 @@ function updateConnectionStatus() {
  * Update reminder checkboxes based on settings
  */
 function updateReminderCheckboxes() {
-  const times = settings.reminderTimes || [10, 5, 1];
+  const times = settings.reminderTimes || [5];
   remind10.checked = times.includes(10);
   remind5.checked = times.includes(5);
   remind1.checked = times.includes(1);
+  customReminderTimes = times.filter(t => !FIXED_REMINDER_TIMES.includes(t));
+  renderCustomReminderTags();
 }
 
 /**
@@ -247,6 +289,7 @@ function getSelectedReminderTimes() {
   if (remind10.checked) times.push(10);
   if (remind5.checked) times.push(5);
   if (remind1.checked) times.push(1);
+  times.push(...customReminderTimes);
   return times.sort((a, b) => b - a);
 }
 

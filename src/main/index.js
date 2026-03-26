@@ -18,7 +18,7 @@ app.setName('Meeting Nudge');
 // Initialize store for settings
 const store = new Store({
   defaults: {
-    reminderTimes: [10, 5, 1], // minutes before meeting
+    reminderTimes: [5], // minutes before meeting
     syncInterval: 5, // minutes
     soundEnabled: true,
     soundFile: 'alert.mp3',
@@ -252,7 +252,12 @@ function closeBlockingWindow() {
     try {
       // Remove all listeners before destroying to prevent conflicts
       blockingWindow.removeAllListeners('close');
-      
+
+      // Exit fullscreen first on macOS to avoid destroy race condition
+      if (process.platform === 'darwin' && blockingWindow.isFullScreen()) {
+        blockingWindow.setFullScreen(false);
+      }
+
       // Force destroy the window (bypasses closable: false)
       blockingWindow.destroy();
       blockingWindow = null;
@@ -861,10 +866,27 @@ ipcMain.handle('snooze-meeting', (event, data) => {
   // Schedule snooze reminder if we have event data
   if (scheduler && meetingEvent) {
     const success = scheduler.snooze(meetingEvent, minutes);
+    if (trayManager) {
+      trayManager.updateSnoozedEvents(scheduler.getSnoozedEvents(), (eventId) => {
+        scheduler.cancelSnooze(eventId);
+        trayManager.updateSnoozedEvents(scheduler.getSnoozedEvents());
+      });
+    }
     return { success, snoozedFor: minutes };
   }
 
   return { success: false, error: 'No event data provided' };
+});
+
+ipcMain.handle('cancel-snooze', (event, eventId) => {
+  if (scheduler) {
+    const success = scheduler.cancelSnooze(eventId);
+    if (trayManager) {
+      trayManager.updateSnoozedEvents(scheduler.getSnoozedEvents());
+    }
+    return { success };
+  }
+  return { success: false };
 });
 
 ipcMain.handle('join-meeting', (event, url) => {
@@ -900,6 +922,13 @@ ipcMain.handle('set-login-item-settings', (event, { openAtLogin }) => {
 // Prep window handlers
 ipcMain.handle('close-prep-window', () => {
   closePrepWindow();
+  return { success: true };
+});
+
+ipcMain.handle('resize-prep-window', (event, height) => {
+  if (prepWindow && !prepWindow.isDestroyed()) {
+    prepWindow.setSize(380, Math.max(36, parseInt(height, 10) || 36));
+  }
   return { success: true };
 });
 

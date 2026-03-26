@@ -10,13 +10,18 @@ const meetingTitle = document.getElementById('meeting-title');
 const meetingTime = document.getElementById('meeting-time');
 const meetingLocation = document.getElementById('meeting-location');
 const joinButtons = document.getElementById('join-buttons');
-const dismissBtn = document.getElementById('dismiss-btn');
-const gotItBtn = document.getElementById('got-it-btn');
+const dismissBtn = document.getElementById('dismiss-btn');   // X — fully dismiss
+const gotItBtn = document.getElementById('got-it-btn');     // − — collapse
+const cardBody = document.getElementById('card-body');
+const cardHeader = document.getElementById('card-header');
 const progressFill = document.getElementById('progress-fill');
 
 const AUTO_DISMISS_MS = 30000; // 30 seconds
+const COLLAPSED_HEIGHT = 44;
+const EXPANDED_HEIGHT = 200;
 let dismissTimer = null;
 let progressTimer = null;
+let isCollapsed = false;
 
 function formatTime(isoString) {
   const date = new Date(isoString);
@@ -33,7 +38,29 @@ function formatMinutesUntil(isoString) {
 function close() {
   clearTimeout(dismissTimer);
   clearInterval(progressTimer);
-  window.electronAPI.closePrepWindow();
+  if (window.electronAPI) {
+    window.electronAPI.closePrepWindow();
+  }
+}
+
+function collapse() {
+  isCollapsed = true;
+  cardBody.style.display = 'none';
+  gotItBtn.textContent = '+';
+  gotItBtn.title = 'Expand';
+  if (window.electronAPI) {
+    window.electronAPI.resizePrepWindow(COLLAPSED_HEIGHT);
+  }
+}
+
+function expand() {
+  isCollapsed = false;
+  cardBody.style.display = '';
+  gotItBtn.textContent = '−';
+  gotItBtn.title = 'Collapse';
+  if (window.electronAPI) {
+    window.electronAPI.resizePrepWindow(EXPANDED_HEIGHT);
+  }
 }
 
 function showEvent(event) {
@@ -96,6 +123,21 @@ window.electronAPI.onShowPrepEvent((event) => {
   showEvent(event);
 });
 
-// Dismiss buttons
-dismissBtn.addEventListener('click', close);
-gotItBtn.addEventListener('click', close);
+// Dismiss (X) fully closes the window
+if (dismissBtn) dismissBtn.addEventListener('click', close);
+
+// Got-it (−) collapses / expands
+if (gotItBtn) gotItBtn.addEventListener('click', () => {
+  if (isCollapsed) {
+    expand();
+  } else {
+    collapse();
+  }
+});
+
+// Click anywhere on the collapsed header to expand
+if (cardHeader) cardHeader.addEventListener('click', (e) => {
+  if (isCollapsed && e.target !== dismissBtn && e.target !== gotItBtn) {
+    expand();
+  }
+});

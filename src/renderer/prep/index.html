@@ -8,21 +8,25 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="card">
-    <div class="card-header">
+  <div class="card" id="prep-card">
+    <div class="card-header" id="card-header">
       <span class="icon">📅</span>
       <span class="badge" id="time-badge">Meeting soon</span>
-      <button class="close-btn" id="got-it-btn" title="Got it">✕</button>
+      <div class="header-actions">
+        <button class="collapse-btn" id="got-it-btn" title="Collapse">−</button>
+        <button class="close-btn" id="dismiss-btn" title="Dismiss">✕</button>
+      </div>
     </div>
 
-    <h2 class="meeting-title" id="meeting-title">Meeting Title</h2>
+    <div class="card-body" id="card-body">
+      <h2 class="meeting-title" id="meeting-title">Meeting Title</h2>
 
-    <div class="meeting-meta" id="meeting-time"></div>
-    <div class="meeting-meta location" id="meeting-location" style="display: none;"></div>
+      <div class="meeting-meta" id="meeting-time"></div>
+      <div class="meeting-meta location" id="meeting-location" style="display: none;"></div>
 
-    <div class="actions">
-      <div id="join-buttons"></div>
-      <button class="btn-secondary" id="dismiss-btn">Got it</button>
+      <div class="actions">
+        <div id="join-buttons"></div>
+      </div>
     </div>
 
     <div class="progress-bar">

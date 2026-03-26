@@ -76,7 +76,7 @@
             <label>Remind me before meetings:</label>
             <div class="checkbox-group">
               <label class="checkbox-label">
-                <input type="checkbox" id="remind-10" checked>
+                <input type="checkbox" id="remind-10">
                 <span>10 minutes</span>
               </label>
               <label class="checkbox-label">
@@ -84,10 +84,20 @@
                 <span>5 minutes</span>
               </label>
               <label class="checkbox-label">
-                <input type="checkbox" id="remind-1" checked>
+                <input type="checkbox" id="remind-1">
                 <span>1 minute</span>
               </label>
             </div>
+          </div>
+
+          <div class="setting-item">
+            <label>Custom reminder time:</label>
+            <div class="custom-reminder-row">
+              <input type="number" id="custom-reminder-input" min="1" max="120" placeholder="e.g. 15" style="width:80px;">
+              <span>min before</span>
+              <button class="btn btn-small" id="add-custom-reminder-btn">+ Add</button>
+            </div>
+            <div id="custom-reminder-tags" class="custom-reminder-tags"></div>
           </div>
 
           <div class="setting-item">
