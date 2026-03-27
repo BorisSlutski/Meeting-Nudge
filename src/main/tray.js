@@ -61,7 +61,15 @@ class TrayManager {
 
     this.tray = new Tray(icon);
     this.tray.setToolTip('Meeting Nudge');
-    
+
+    // On macOS, explicitly handle click to show only the context menu popup.
+    // Without this, Electron 38 may activate the app and surface any open window.
+    if (process.platform === 'darwin') {
+      this.tray.on('click', () => {
+        this.tray.popUpContextMenu();
+      });
+    }
+
     this.updateMenu();
 
   }
