@@ -18,7 +18,9 @@ class TrayManager {
     this.onCancelSnooze = null;
     this.syncError = null;
     this.lastSyncTime = null;
-    
+    this.menuIsOpen = false;
+    this.menuJustClosed = false;
+
     this.createTray();
   }
 
@@ -65,8 +67,6 @@ class TrayManager {
     // On macOS, toggle the context menu on click.
     // Without an explicit handler, Electron may activate the app and surface any open window.
     if (process.platform === 'darwin') {
-      this.menuIsOpen = false;
-      this.menuJustClosed = false;
       this.tray.on('click', () => {
         if (this.menuIsOpen || this.menuJustClosed) {
           this.tray.closeContextMenu();
@@ -236,6 +236,7 @@ class TrayManager {
     contextMenu.on('menu-will-close', () => {
       this.menuIsOpen = false;
       this.menuJustClosed = true;
+      // 150ms outlasts the macOS menu close animation so a rapid re-click doesn't re-open the menu
       setTimeout(() => { this.menuJustClosed = false; }, 150);
     });
     this.tray.setContextMenu(contextMenu);

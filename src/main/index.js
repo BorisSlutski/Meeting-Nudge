@@ -26,7 +26,6 @@ const store = new Store({
     pausedUntil: null,
     previewNotificationsEnabled: true,
     includeFocusTime: true, // Include focus time events by default
-
   }
 });
 
@@ -549,19 +548,20 @@ app.whenReady().then(async () => {
   if (process.platform === 'darwin' && app.dock) {
     app.dock.hide();
   }
+
+  // Dock icon click (macOS only) — open settings window.
+  // Registered here (after initialize) so themeManager is guaranteed to be set.
+  if (process.platform === 'darwin') {
+    app.on('activate', () => {
+      createSettingsWindow();
+    });
+  }
 });
 
 app.on('before-quit', () => {
   isQuitting = true;
   closeBlockingWindow();
 });
-
-// Dock icon click (macOS only) — open settings window
-if (process.platform === 'darwin') {
-  app.on('activate', () => {
-    createSettingsWindow();
-  });
-}
 
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
@@ -575,7 +575,7 @@ if (!gotLock) {
 } else {
   app.on('second-instance', () => {
     // Already running — just pop up the tray menu
-    if (trayManager) {
+    if (trayManager && trayManager.tray) {
       trayManager.tray.popUpContextMenu();
     }
   });
