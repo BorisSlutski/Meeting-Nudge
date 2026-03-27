@@ -29,6 +29,7 @@ mac:
         - arm64
 
 dmg:
+  format: ULFO
   contents:
     - x: 130
       y: 220
