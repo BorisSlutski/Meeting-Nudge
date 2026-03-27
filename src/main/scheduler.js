@@ -66,26 +66,13 @@ class Scheduler {
     }
 
 
-    // Process snoozedJobs
-    const snoozedJobIds = Array.from(this.snoozedJobs.keys());
-    for (const jobId of snoozedJobIds) {
-      const job = this.snoozedJobs.get(jobId);
-      if (job) {
-        try {
-          job.cancel();
-          console.log(`✓ Canceled snoozed job: ${jobId}`);
-        } catch (error) {
-          console.error(`✗ Error canceling snoozed job ${jobId}:`, error);
-        }
-      }
-      this.snoozedJobs.delete(jobId);
-    }
-    
-    if (snoozedJobIds.length > 0) {
-      console.log(`Cleared ${snoozedJobIds.length} snoozed reminder(s) during sync`);
+    // Snoozed jobs are user-initiated and must survive calendar syncs — do not cancel them here.
+    // They are only cancelled via cancelSnooze() or cancelAll() (on quit).
+    if (this.snoozedJobs.size > 0) {
+      console.log(`Preserving ${this.snoozedJobs.size} active snooze(s) across sync`);
     }
 
-    const reminderTimes = this.store.get('reminderTimes') || [10, 5, 1];
+    const reminderTimes = this.store.get('reminderTimes') || [5];
     const previewEnabled = this.store.get('previewNotificationsEnabled') !== false;
     const previewSeconds = 30; // Preview 30 seconds before full-screen
     const now = new Date();
