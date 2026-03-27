@@ -556,10 +556,12 @@ app.on('before-quit', () => {
   closeBlockingWindow();
 });
 
-// Dock icon click — open settings window
-app.on('activate', () => {
-  createSettingsWindow();
-});
+// Dock icon click (macOS only) — open settings window
+if (process.platform === 'darwin') {
+  app.on('activate', () => {
+    createSettingsWindow();
+  });
+}
 
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {
