@@ -154,6 +154,11 @@ function createSettingsWindow() {
 
   settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings', 'index.html'));
 
+  // Re-hide dock icon — Electron re-shows it when a BrowserWindow is created
+  if (process.platform === 'darwin' && app.dock) {
+    app.dock.hide();
+  }
+
   settingsWindow.on('closed', () => {
     settingsWindow = null;
   });
@@ -550,6 +555,9 @@ app.on('before-quit', () => {
   isQuitting = true;
   closeBlockingWindow();
 });
+
+// Tray-only app — dock click should never activate or surface windows
+app.on('activate', () => {});
 
 // Quit when all windows are closed (except on macOS)
 app.on('window-all-closed', () => {

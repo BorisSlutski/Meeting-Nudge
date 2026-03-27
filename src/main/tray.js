@@ -66,8 +66,9 @@ class TrayManager {
     // Without an explicit handler, Electron may activate the app and surface any open window.
     if (process.platform === 'darwin') {
       this.menuIsOpen = false;
+      this.menuJustClosed = false;
       this.tray.on('click', () => {
-        if (this.menuIsOpen) {
+        if (this.menuIsOpen || this.menuJustClosed) {
           this.tray.closeContextMenu();
         } else {
           this.tray.popUpContextMenu();
@@ -232,7 +233,11 @@ class TrayManager {
 
     const contextMenu = Menu.buildFromTemplate(menuItems);
     contextMenu.on('menu-will-show', () => { this.menuIsOpen = true; });
-    contextMenu.on('menu-will-close', () => { this.menuIsOpen = false; });
+    contextMenu.on('menu-will-close', () => {
+      this.menuIsOpen = false;
+      this.menuJustClosed = true;
+      setTimeout(() => { this.menuJustClosed = false; }, 150);
+    });
     this.tray.setContextMenu(contextMenu);
   }
 
