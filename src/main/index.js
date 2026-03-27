@@ -160,9 +160,9 @@ function createSettingsWindow() {
     if (process.platform === 'darwin' && app.dock) {
       app.dock.hide();
     }
+    settingsWindow.show();
     // Activate the app so the window comes to the foreground on macOS menu bar apps
     if (process.platform === 'darwin') app.focus({ steal: true });
-    settingsWindow.show();
   });
 
   settingsWindow.on('closed', () => {
