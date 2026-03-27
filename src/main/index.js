@@ -132,6 +132,7 @@ function sanitizeSettings(settings) {
 function createSettingsWindow() {
   if (settingsWindow) {
     settingsWindow.focus();
+    if (process.platform === 'darwin') app.focus({ steal: true });
     return;
   }
 
@@ -141,6 +142,7 @@ function createSettingsWindow() {
     width: 600,
     height: 700,
     resizable: false,
+    show: false,
     title: 'Meeting Nudge - Settings',
     icon: iconPath,
     webPreferences: {
@@ -153,10 +155,15 @@ function createSettingsWindow() {
 
   settingsWindow.loadFile(path.join(__dirname, '..', 'renderer', 'settings', 'index.html'));
 
-  // Re-hide dock icon — Electron re-shows it when a BrowserWindow is created
-  if (process.platform === 'darwin' && app.dock) {
-    app.dock.hide();
-  }
+  settingsWindow.once('ready-to-show', () => {
+    // Re-hide dock icon — Electron re-shows it when a BrowserWindow is created
+    if (process.platform === 'darwin' && app.dock) {
+      app.dock.hide();
+    }
+    // Activate the app so the window comes to the foreground on macOS menu bar apps
+    if (process.platform === 'darwin') app.focus({ steal: true });
+    settingsWindow.show();
+  });
 
   settingsWindow.on('closed', () => {
     settingsWindow = null;
